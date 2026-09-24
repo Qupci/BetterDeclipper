@@ -48,3 +48,40 @@ Findings:
 | lofi48 -12 / -6 | 13.4 / 1.4 | 9.09 / 17.12 | 17.82 / 22.87 | n/a |
 | ghostpage48 -12 / -6 | 50.1 / 16.8 | 5.69 / 13.37 | 11.37 / 19.19 | n/a |
 Runtime ~7x slower than real time on the i5-2320 (149 s for the 21.7 s example).
+
+## Session 2 findings (model fusion, SPADE tuning, NMF, speed)
+| # | experiment (5-10 s excerpt; PAD = 23.32) | result |
+|---|------------------------------------------|--------|
+| 12 | PnP-PEW 4096 + side lambda gain [1, 2.5] (PCA minor comp.) | 24.48 |
+| 13 | PnP iterations 100/200/300/400/600/1000 | 23.59/24.12/24.30/24.48/24.56/24.58 |
+| 14 | ensemble avg of PnP 2048+4096+8192 (error corr 0.63-0.82) | 24.76 |
+| 15 | ours (PnP) + PAD average (error corr only 0.35!) | 25.58 -> model diversity matters |
+| 16 | A-SPADE 4096 s=8 (per channel) + PnP average | SPADE 23.14, fused 25.36 |
+| 17 | stereo joint A-SPADE (PCA, joint top-k over channels) | 23.62 alone, fused 25.45 |
+| 18 | SPADE eps (abs., signal normalized to clip level) 0.1/0.3/1/3/6/12 | 23.62/23.66/23.86/**24.08**/23.33/18.83; eps 3 fused 25.54, 12 s (was 62 s) |
+| 19 | SPADE speed: single kthvalue for all active frames (k grows in lockstep) + drop converged frames | 2.2x faster, identical output |
+| 20 | 6-model avg (PnP 2048/4096/8192 + SPADE 2048/4096/8192) | 25.85 (oracle LS weights 25.91) |
+| 21 | error correlation PAD vs our SPADE 0.57-0.62, vs PnP 0.26-0.36 -> PAD is SPADE-like; ens6+PAD only 26.0 | |
+| 22 | **NMF-Wiener PnP** (denoiser gain V/(V+lam^2), V = low-rank KL-NMF of iterate's power spectrogram, templates shared over channels, warm-started, 1 MU step / iteration) | rank 16/32/64/128/256: 23.88/24.67/24.79/**25.46**/25.04 |
+| 23 | NMF + PnP-PEW + SPADE average | 26.04 |
+| 24 | **denormal floats**: MU updates produce denormals; `torch.set_flush_denormal(True)` makes NMF-PnP 10x faster (165 s -> 16 s) | |
+| 25 | overlap-add via slice adds instead of F.fold: 9x faster synthesis | |
+
+Full example (21.7 s) single models via engine (20 s chunks): NMF rank 128/256/512 = 24.58/24.66/24.72 dB
+(96/131/200 s), PnP-PEW = 23.80 dB (64 s).
+
+## Presets on the full example (NMF rank = min(128, 0.3 x rows))
+| preset | models | SDR | clipped-samples SDR | time |
+|--------|--------|-----|---------------------|------|
+| fast   | NMF 93 ms, 150 it | 24.17 | 22.73 | 38 s |
+| normal | NMF + SPADE | 24.93 | 23.50 | 140 s |
+| high   | NMF + PEW + SPADE | 25.30 | 23.87 | 199 s |
+| (old best) | NMF93+NMF46+PEW+SPADE93+SPADE186 | 25.30 | 23.87 | 368 s -> no gain on full file |
+Uncapped rank (0.3 x rows ~ 564) was slower and not better in ensembles (fast 24.29/78 s, normal 24.89/238 s, high 25.24/299 s).
+NMF lambda schedule variants (lam1 1e-3/1e-5, lam0 0.03, chan_gain) -> no gain over defaults.
+
+## Real-world material (blind CD examples) - histogram signatures (research/plots/blind_hist.png)
+- greenday: bell-shaped plateau ~23 LSB below max (+-6 LSB) + shoulder: hard clip, then processed.
+- scar tissue: sharp plateau spikes, polarity-dependent levels.
+- metallica: NO top plateau; broad density bump at 0.7-0.85 x peak = soft clipping / heavy limiting
+  (knee ~0.62 x peak). Needs a soft-clip model (constraint |x| >= |y| above a knee).

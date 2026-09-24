@@ -12,9 +12,11 @@ of samples are clipped, then dithered to 16 bit). Score is SDR against the groun
 |-------------|------------------|----------------------------|-----------------|
 | clipped input | 10.47 dB | 9.04 dB | - |
 | ProAudioDeclipper (provided output) | 21.82 dB | 20.41 dB | - |
-| BetterDeclipper `--preset fast` | 23.46 dB | 22.03 dB | 0.6 min |
-| BetterDeclipper `--preset normal` | **24.55 dB** | 23.12 dB | 2.3 min |
-| BetterDeclipper `--preset best` | **25.00 dB** | 23.57 dB | 6.2 min |
+| BetterDeclipper `--preset fast` | **24.17 dB** | 22.73 dB | 38 s |
+| BetterDeclipper `--preset normal` | **24.93 dB** | 23.50 dB | 2.3 min |
+| BetterDeclipper `--preset high` | **25.30 dB** | 23.87 dB | 3.3 min |
+
+Even the `fast` preset (1.75x real time on a 2011 quad-core CPU) beats ProAudioDeclipper by 2.3 dB.
 
 ## Usage
 
@@ -33,14 +35,14 @@ python -m betterdeclipper in.wav out.wav --format pcm24 --normalize -0.1
 - `--clip-level` forces a level when auto-detection finds nothing. For example, soft-clipped masters
   have no flat plateau at the top of the waveform.
 
-Presets (the model average gets more diverse as you go down the list):
+Presets (each averages structurally different models):
 
-| preset | models averaged | relative time |
+| preset | models averaged | time on the example (21.7 s audio) |
 |--------|-----------------|---------------|
-| fast   | PnP-PEW 93 ms (200 it) | 0.2x |
-| normal | PnP-PEW 93 ms + stereo A-SPADE 93 ms | 1x |
-| high   | PnP-PEW 93/46 ms + A-SPADE 93/186 ms | ~2x |
-| best   | PnP-PEW 46/93/186 ms + A-SPADE 46/93/186 ms | ~2.7x |
+| fast   | NMF-PnP (150 it) | 38 s |
+| normal | NMF-PnP + stereo A-SPADE | 140 s |
+| high   | NMF-PnP + PEW-PnP + stereo A-SPADE | 199 s |
+| best   | like `high` with twice the iterations | ~6 min |
 
 ## How it works
 
@@ -49,7 +51,12 @@ Presets (the model average gets more diverse as you go down the list):
    tolerates dither and requantization noise, which smears the plateau over a few LSBs.
 2. **Consistency**. Unclipped samples are kept exactly. Clipped samples are only allowed to lie
    beyond the clip level, with the sign of the clipped sample.
-3. **Restoration models**. Each one finds a consistent signal that is sparse in time-frequency:
+3. **Restoration models**. Each one finds a consistent signal that fits a prior of the time-frequency (TF) coefficients:
+   - *NMF-PnP* (`methods/pnp.py`, strongest single model): plug-and-play iterations
+     `x <- Wiener_V(P_consistent(x))`, where the Wiener gain `V/(V+lambda^2)` uses a low-rank
+     non-negative matrix factorization `V = W H` of the current power spectrogram. The spectral
+     templates `W` are shared by both channels and warm-started across iterations, and lambda is annealed.
+     Repeating sounds (drum hits, notes) are explained by a few templates, and clipping distortion is not.
    - *PnP-PEW* (`methods/pnp.py`): plug-and-play iterations `x <- PEW(P_consistent(x))` with
      "persistent empirical Wiener" social shrinkage (Siedenburg et al. 2014) in a Parseval STFT,
      FISTA momentum, and a geometrically annealed threshold.
@@ -58,11 +65,13 @@ Presets (the model average gets more diverse as you go down the list):
      jointly over both channels.
    - *Stereo coupling*: both models work on PCA-rotated channels (a mid/side-like basis), so
      unclipped samples in one channel inform the other. The minor component is regularized harder.
-4. **Fusion** (`engine.py`). The averaged models are structurally different: PEW tends to
+4. **Fusion** (`engine.py`). The averaged models are structurally different: NMF/PEW tend to
    slightly undershoot peaks, while SPADE overshoots (PAD behaves like SPADE). Their errors are only
-   weakly correlated (~0.45), so averaging adds 1 to 1.4 dB. The average of consistent signals is
+   weakly correlated (~0.5), so averaging adds up to about 1 dB. The average of consistent signals is
    still consistent.
-5. **Chunking**. Processing runs in 20 s chunks with 1.5 s of context and a short crossfade, so
+5. **Speed**. torch float32 FFTs, vectorized frames, slice-add overlap-add, and flush-to-zero
+   for denormal floats. Without flush-to-zero, the NMF updates run 10x slower on older CPUs.
+6. **Chunking**. Processing runs in 20 s chunks with 1.5 s of context and a short crossfade, so
    memory stays bounded. Chunks without clipping are copied through.
 
 The research history, all experiments and their numbers are in `research/LOG.md`.

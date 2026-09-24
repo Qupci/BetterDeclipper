@@ -1,0 +1,3 @@
+24.912 dB (clipped 23.480)  153s  nmf93{"nmf_rank":128}+spade93{}
+25.265 dB (clipped 23.832)  217s  nmf93{"nmf_rank":128}+pnp93{}+spade93{}
+25.264 dB (clipped 23.831)  250s  nmf93{"nmf_rank":256}+pnp93{}+spade93{}

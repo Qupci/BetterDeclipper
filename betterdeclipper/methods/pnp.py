@@ -14,6 +14,8 @@ Options:
 import math
 import numpy as np
 import torch
+
+torch.set_flush_denormal(True)  # denormals are very slow on older x86 CPUs
 import torch.nn.functional as Fnn
 
 from ..stft import TightSTFT
@@ -68,10 +70,76 @@ class PEWDenoiser:
         return out / len(self.shifts)
 
 
+class NMFDenoiser:
+    """Wiener-type shrinkage whose signal power comes from a low-rank NMF model of the current
+    iterate's power spectrogram (templates shared by all channels, warm-started across calls).
+    gain_mode 'wiener': V/(V+lam^2); 'pew': max(0, 1 - lam^2/V)."""
+
+    def __init__(self, stft, rank=32, nmf_iter=2, beta=1.0, gain_mode="wiener", smooth_mix=0.0,
+                 pew_kernel=None, device="cpu", dtype=torch.float32, chan_gain=None):
+        self.stft, self.rank, self.nmf_iter, self.beta = stft, rank, nmf_iter, beta
+        self.gain_mode, self.smooth_mix, self.pew_kernel = gain_mode, smooth_mix, pew_kernel
+        self.W = None
+        self.H = None
+        self.device, self.dtype = device, dtype
+        self.shifts = [0]
+        self.chan_gain = None if chan_gain is None else torch.as_tensor(chan_gain, dtype=dtype, device=device)[:, None, None]
+
+    def energy(self, a2):  # used for pilot energies (same interface as PEWDenoiser)
+        return a2
+
+    def _fit(self, P, n_iter):
+        eps = 1e-12
+        if self.W is None:
+            g = torch.Generator().manual_seed(0)
+            N, K = P.shape
+            m = P.mean()
+            self.W = (torch.rand(K, self.rank, generator=g, dtype=self.dtype) + 0.1).to(self.device) * torch.sqrt(m)
+            self.H = (torch.rand(N, self.rank, generator=g, dtype=self.dtype) + 0.1).to(self.device) * torch.sqrt(m)
+        W, H, b = self.W, self.H, self.beta
+        for _ in range(n_iter):
+            V = H @ W.T + eps
+            if b == 1.0:  # KL: denominators are column sums (ones @ W == W.sum(0))
+                H = H * ((P / V) @ W) / (W.sum(0, keepdim=True) + eps)
+                V = H @ W.T + eps
+                W = W * ((P / V).T @ H) / (H.sum(0, keepdim=True) + eps)
+            else:
+                H = H * ((V ** (b - 2) * P) @ W) / ((V ** (b - 1)) @ W + eps)
+                V = H @ W.T + eps
+                W = W * ((V ** (b - 2) * P).T @ H) / ((V ** (b - 1)).T @ H + eps)
+            # normalize templates (scale into activations)
+            s = W.sum(0, keepdim=True) + eps
+            W = W / s
+            H = H * s
+        self.W, self.H = W, H
+        return H @ W.T
+
+    def __call__(self, x, lam):
+        Tp = x.shape[-1]
+        z = self.stft.analysis(x)
+        C, F, K = z.shape
+        a2 = z.real ** 2 + z.imag ** 2
+        n_it = self.nmf_iter if self.W is not None else 50
+        V = self._fit(a2.reshape(C * F, K), n_it).reshape(C, F, K)
+        if self.smooth_mix > 0 and self.pew_kernel is not None:
+            kt, kf = self.pew_kernel.shape[-2:]
+            E = Fnn.conv2d(a2[:, None], self.pew_kernel, padding=(kt // 2, kf // 2))[:, 0]
+            V = (1 - self.smooth_mix) * V + self.smooth_mix * E
+        lam2 = lam ** 2
+        if self.chan_gain is not None:
+            lam2 = lam2 * self.chan_gain ** 2
+        if self.gain_mode == "wiener":
+            g = V / (V + lam2)
+        else:
+            g = torch.clamp(1.0 - lam2 / (V + 1e-30), min=0.0)
+        return self.stft.synthesis(z * g, Tp)
+
+
 def declip_pnp(y, m_hi, m_lo, th_hi, th_lo, sr=44100, win_len=4096, hop=1024, neigh=(3, 7), neighs=None,
                combine="max", shifts=1, n_iter=400, lam0=0.1, lam1=1e-4, stereo="pca", momentum=True,
                chan_gain=None, fweight=None, pilot=None, pilot_mix=0.0, gain_mode="pew", relax=1.0,
-               device="cpu", dtype=torch.float32, callback=None, x_init=None, lam_ref=None):
+               device="cpu", dtype=torch.float32, callback=None, x_init=None, lam_ref=None,
+               den_type="pew", nmf_rank=32, nmf_iter=2, nmf_beta=1.0, nmf_smooth=0.0, nmf_rank_ratio=None):
     T, C = y.shape
     scale = float(np.max(np.abs(np.concatenate([th_hi[np.isfinite(th_hi)], th_lo[np.isfinite(th_lo)], [1e-3]]))))
     lb, ub = make_bounds(y / scale, m_hi, m_lo, th_hi / scale, th_lo / scale)
@@ -103,7 +171,15 @@ def declip_pnp(y, m_hi, m_lo, th_hi, th_lo, sr=44100, win_len=4096, hop=1024, ne
         f = torch.arange(K, dtype=dtype, device=device).clamp(min=1.0) / (K * 0.05)
         fw = f ** float(fweight)
         fw = fw / fw.mean()
-    den = PEWDenoiser(stft, neighs or [neigh], device, dtype, shifts, combine, chan_gain, fw, None, pilot_mix, gain_mode)
+    if den_type == "nmf":
+        if nmf_rank_ratio is not None:
+            # rank proportional to the number of spectrogram rows (channels x frames) of this chunk
+            n_rows = C * ((Tp - win_len) // hop + 1)
+            nmf_rank = int(max(16, min(nmf_rank, round(nmf_rank_ratio * n_rows))))
+        den = NMFDenoiser(stft, nmf_rank, nmf_iter, nmf_beta, gain_mode, nmf_smooth,
+                          _neigh_kernel(neigh[0], neigh[1], device, dtype), device, dtype, chan_gain)
+    else:
+        den = PEWDenoiser(stft, neighs or [neigh], device, dtype, shifts, combine, chan_gain, fw, None, pilot_mix, gain_mode)
     if pilot is not None:
         pu = unmix(to_pad(pilot))
         pe = []
