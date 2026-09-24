@@ -44,11 +44,18 @@ class TightSTFT:
     def synthesis(self, c, Tp):
         """c: (B, F, K) complex -> (B, Tp) real (overlap-add)."""
         frames = torch.fft.irfft(c, n=self.nfft, dim=-1, norm="ortho")[..., : self.win_len] * self.win
-        B, F, W = frames.shape
-        out = Fnn.fold(
-            frames.transpose(1, 2),  # (B, W, F)
-            output_size=(1, Tp),
-            kernel_size=(1, W),
-            stride=(1, self.hop),
-        )
-        return out.reshape(B, Tp)
+        return overlap_add(frames, self.hop, Tp)
+
+
+def overlap_add(frames, hop, Tp):
+    """frames: (B, F, W) with W a multiple of hop -> (B, Tp). Much faster than F.fold on CPU."""
+    B, F, W = frames.shape
+    R = W // hop
+    fr = frames.reshape(B, F, R, hop)
+    out = torch.zeros(B, F + R - 1, hop, dtype=frames.dtype, device=frames.device)
+    for j in range(R):
+        out[:, j:j + F] += fr[:, :, j]
+    out = out.reshape(B, (F + R - 1) * hop)
+    if out.shape[1] < Tp:
+        out = Fnn.pad(out, (0, Tp - out.shape[1]))
+    return out[:, :Tp]
