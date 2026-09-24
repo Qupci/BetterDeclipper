@@ -34,12 +34,13 @@ def nice_len(n):
     return best
 
 
-# Model definitions. Window lengths are in ms (93 ms == 4096 samples @ 44.1 kHz).
+# Model definitions. Window lengths are in ms (93 ms == 4096 samples @ 44.1 kHz). Optional "weight"
+# in the model options sets its share in the (convex) fusion; default equal weights.
 # nmf: plug-and-play with an NMF-Wiener denoiser (low-rank spectrogram model, rank ~0.3 x frames);
 # pnp: plug-and-play with PEW social shrinkage; spade: stereo A-SPADE (eps/s scale with the window).
 PRESETS = {
     "fast": [("nmf", 93, dict(n_iter=150))],
-    "normal": [("nmf", 93, {}), ("spade", 93, {})],
+    "normal": [("nmf", 93, dict(weight=0.65)), ("spade", 93, dict(weight=0.35))],
     "high": [("nmf", 93, {}), ("pnp", 93, {}), ("spade", 93, {})],
     "best": [("nmf", 93, dict(n_iter=800)), ("pnp", 93, dict(n_iter=800)), ("spade", 93, {})],
 }
@@ -178,8 +179,10 @@ def declip(y, sr, preset="normal", levels=None, chunk_s=20.0, ctx_s=1.5, fade_s=
         yc, mh, ml = y[a:b], m_hi[a:b], m_lo[a:b]
         thh = th_hi if th_hi.ndim == 1 else th_hi[a:b]
         thl = th_lo if th_lo.ndim == 1 else th_lo[a:b]
-        ests = []
+        ests, wts = [], []
         for kind, win_ms, extra in models:
+            extra = dict(extra)
+            wts.append(extra.pop("weight", 1.0))
             kw = _model_kwargs(kind, win_ms, sr, extra)
             if max_gain_db is not None:
                 kw["max_gain"] = 10 ** (max_gain_db / 20)
@@ -188,7 +191,8 @@ def declip(y, sr, preset="normal", levels=None, chunk_s=20.0, ctx_s=1.5, fade_s=
             else:
                 est = declip_spade(yc, mh, ml, thh, thl, **kw)
             ests.append(est)
-        est = np.mean(ests, axis=0)
+        wts = np.asarray(wts) / np.sum(wts)
+        est = np.tensordot(wts, np.stack(ests, 0), axes=1)
         acc[ia:ib] += est[ia - a:ib - a] * wt[:, None]
         wsum[ia:ib] += wt
         if progress:

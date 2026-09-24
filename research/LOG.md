@@ -109,3 +109,11 @@ Mean dSDR over the 8 cases: 9.30 -> 10.91 dB. ~80-210 s per 15 s case.
 - metallica: soft (knee ~-12.8/-11.7 dBFS, peak -9.6), 19.9 % flagged.
 - scar tissue: hard, -6.12 dBFS, 1.1 % flagged.
 - `--max-gain` cap on the excerpt (normal preset): none 25.85, +12 dB 25.76, +9 dB 24.96 dB.
+
+## Fusion weights
+Optimal NMF/SPADE weight (5 s excerpts): example 0.65 (+0.11 vs equal), merlon48-12 0.75 (+0.29 @0.65),
+lofi48-12 0.45 (-0.18 @0.65), ghostpage48-6 0.75 (+0.67 @0.65) -> mean +0.22 dB with 0.65/0.35.
+3-way (0.45/0.2/0.35) only +0.04 mean -> `high` keeps equal weights.
+NMF + local PEW energy hybrid (nmf_smooth 0.3/0.6): 25.37/25.14 vs 25.46 pure NMF -> no gain.
+**normal preset with 0.65/0.35: 25.21 dB on the full example** (was 24.93), 158 s.
+Robustness: mono asym float, 3 channels, 24-bit container, clean passthrough all OK.

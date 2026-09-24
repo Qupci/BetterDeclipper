@@ -26,7 +26,8 @@ def main(argv=None):
                          "applied to both polarities of all channels")
     ap.add_argument("--mode", choices=["auto", "hard", "soft"], default="auto",
                     help="hard: flat clipping plateau; soft: soft clipping/limiting above a knee "
-                         "(original >= observed); auto: hard if a plateau is found, else soft (default)")
+                         "(original >= observed); auto: hard if a clipping plateau is found, soft if only a "
+                         "limiter pile-up is found, otherwise no change (default)")
     ap.add_argument("--knee", default=None,
                     help="soft mode: force the knee level in dBFS (e.g. -9) or linear (e.g. 0.35)")
     ap.add_argument("--max-gain", type=float, default=None, metavar="DB",
