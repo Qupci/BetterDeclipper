@@ -15,6 +15,7 @@ of samples are clipped, then dithered to 16 bit). Score is SDR against the groun
 | BetterDeclipper `--preset fast` | **24.17 dB** | 22.73 dB | 38 s |
 | BetterDeclipper `--preset normal` | **25.21 dB** | 23.78 dB | 2.6 min |
 | BetterDeclipper `--preset high` | **25.30 dB** | 23.87 dB | 3.3 min |
+| BetterDeclipper `--preset best` | **25.37 dB** | 23.94 dB | 6.5 min |
 
 Even the `fast` preset (1.75x real time on a 2011 quad-core CPU) beats ProAudioDeclipper by 2.3 dB.
 
@@ -53,7 +54,7 @@ Presets (each averages structurally different models):
 | fast   | NMF-PnP (150 it) | 38 s |
 | normal | NMF-PnP (weight 0.65) + stereo A-SPADE (0.35) | 158 s |
 | high   | NMF-PnP + PEW-PnP + stereo A-SPADE | 199 s |
-| best   | like `high` with twice the iterations | ~6 min |
+| best   | like `high` with twice the iterations | 387 s |
 
 ## How it works
 

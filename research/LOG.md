@@ -117,3 +117,4 @@ lofi48-12 0.45 (-0.18 @0.65), ghostpage48-6 0.75 (+0.67 @0.65) -> mean +0.22 dB 
 NMF + local PEW energy hybrid (nmf_smooth 0.3/0.6): 25.37/25.14 vs 25.46 pure NMF -> no gain.
 **normal preset with 0.65/0.35: 25.21 dB on the full example** (was 24.93), 158 s.
 Robustness: mono asym float, 3 channels, 24-bit container, clean passthrough all OK.
+best (2x iterations): 25.37 dB, clipped-samples 23.94 dB, 387 s
