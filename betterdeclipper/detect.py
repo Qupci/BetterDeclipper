@@ -95,3 +95,47 @@ def clip_masks(y, levels):
     m_hi = y >= th_hi[None, :]
     m_lo = y <= th_lo[None, :]
     return m_hi, m_lo, th_hi, th_lo
+
+
+def detect_knee(y, fit_range=(0.25, 0.5), excess=1.6, run=6, bins=200, peak_discard=1e-4):
+    """Soft-clipping knee per channel and polarity.
+
+    Fits the natural (log-linear) decay of the amplitude histogram on `fit_range` x peak and returns the
+    lowest level above the fit range where the observed density exceeds the fitted trend by `excess`
+    for `run` consecutive bins (compressed samples pile up below the ceiling). Returns a list of
+    (knee_pos, knee_neg) per channel (knee_neg negative), None when no pile-up is found.
+    """
+    y = np.asarray(y, dtype=np.float64)
+    if y.ndim == 1:
+        y = y[:, None]
+    out = []
+    for c in range(y.shape[1]):
+        res = []
+        for sgn in (1.0, -1.0):
+            s = sgn * y[:, c]
+            s = s[s > 0]
+            if s.size < 1000:
+                res.append(None)
+                continue
+            k = int(np.floor(s.size * peak_discard))
+            peak = np.partition(s, s.size - 1 - k)[s.size - 1 - k] if k > 0 else s.max()
+            h, e = np.histogram(np.minimum(s / peak, 1.0), bins=bins, range=(0.0, 1.0))
+            u = 0.5 * (e[:-1] + e[1:])
+            sel = (u >= fit_range[0]) & (u <= fit_range[1]) & (h > 0)
+            if sel.sum() < 5:
+                res.append(None)
+                continue
+            b, a = np.polyfit(u[sel], np.log(h[sel]), 1)
+            b = min(b, 0.0)  # natural density does not grow with amplitude
+            pred = np.exp(a + b * u)
+            hs = np.convolve(h, np.ones(3) / 3, mode="same")
+            over = hs > excess * pred
+            knee = None
+            start = int(np.searchsorted(u, fit_range[1]))
+            for i in range(start, bins - run + 1):
+                if over[i:i + run].all():
+                    knee = e[i] * peak
+                    break
+            res.append(None if knee is None else sgn * knee)
+        out.append(tuple(res))
+    return out

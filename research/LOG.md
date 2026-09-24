@@ -85,3 +85,27 @@ NMF lambda schedule variants (lam1 1e-3/1e-5, lam0 0.03, chan_gain) -> no gain o
 - scar tissue: sharp plateau spikes, polarity-dependent levels.
 - metallica: NO top plateau; broad density bump at 0.7-0.85 x peak = soft clipping / heavy limiting
   (knee ~0.62 x peak). Needs a soft-clip model (constraint |x| >= |y| above a knee).
+
+## Other inputs: 48 kHz test set with the `normal` preset (NMF + SPADE) vs first PEW-only version
+| case | SDR in | PEW v1 | normal v3 |
+|------|--------|--------|-----------|
+| gris48 -12 / -6 | 8.60 / 20.13 | 20.43 / 34.58 | **22.79 / 35.41** |
+| merlon48 -12 / -6 | 7.69 / 17.47 | 17.94 / 29.34 | **19.93 / 30.08** |
+| lofi48 -12 / -6 | 9.09 / 17.12 | 17.82 / 22.87 | **19.31 / 26.19** |
+| ghostpage48 -12 / -6 | 5.69 / 13.37 | 11.37 / 19.19 | **13.19 / 19.53** |
+Mean dSDR over the 8 cases: 9.30 -> 10.91 dB. ~80-210 s per 15 s case.
+
+## Soft clipping (synthetic: example GT through tanh soft clipper, knee 0.3, ceiling 0.5, 16-bit)
+- histogram pile-up detection does NOT fire for gentle tanh saturation (density keeps decaying);
+  it fires for heavy limiting (metallica: knee 0.68-0.78 x peak).
+- forced soft mode (constraint |x| >= |y| above knee), fast preset, input 24.07 dB:
+  knee 0.30/0.35/0.40/0.43/0.46/0.48 -> 29.51/33.48/**33.98**/30.85/27.09/24.99 dB
+  => best declared knee ~0.75-0.8 x peak (above the true knee); used as default for --mode soft.
+
+## Blind CD excerpts (30 s, fast preset; research/outputs/blind/)
+- greenday: hard, -8.32 dBFS, 0.46 % flagged; restored peak +4.6 dBFS on a snare onset (short runs
+  on a ~4 kHz oscillation; PAD also predicts a big peak there but limits it to 0 dBFS and lowers
+  surrounding unclipped samples via its limiter).
+- metallica: soft (knee ~-12.8/-11.7 dBFS, peak -9.6), 19.9 % flagged.
+- scar tissue: hard, -6.12 dBFS, 1.1 % flagged.
+- `--max-gain` cap on the excerpt (normal preset): none 25.85, +12 dB 25.76, +9 dB 24.96 dB.

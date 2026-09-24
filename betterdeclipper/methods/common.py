@@ -3,7 +3,7 @@ import numpy as np
 import torch
 
 
-def make_bounds(y, m_hi, m_lo, th_hi, th_lo):
+def make_bounds(y, m_hi, m_lo, th_hi, th_lo, max_gain=None):
     """Per-sample lower/upper bounds of the consistency set.
 
     y, m_hi, m_lo: (T, C) numpy arrays. th_hi/th_lo: (C,).
@@ -13,13 +13,25 @@ def make_bounds(y, m_hi, m_lo, th_hi, th_lo):
     y = np.asarray(y, dtype=np.float64)
     lb = y.copy()
     ub = y.copy()
-    th_hi_b = np.broadcast_to(th_hi[None, :], y.shape)
-    th_lo_b = np.broadcast_to(th_lo[None, :], y.shape)
+    th_hi_b = full_thresholds(th_hi, y.shape)
+    th_lo_b = full_thresholds(th_lo, y.shape)
     lb[m_hi] = th_hi_b[m_hi]
-    ub[m_hi] = np.inf
-    lb[m_lo] = -np.inf
+    ub[m_hi] = np.inf if max_gain is None else max_gain * th_hi_b[m_hi]
+    lb[m_lo] = -np.inf if max_gain is None else max_gain * th_lo_b[m_lo]
     ub[m_lo] = th_lo_b[m_lo]
     return lb.T.copy(), ub.T.copy()
+
+
+def full_thresholds(th, shape):
+    """Thresholds may be per channel (C,) or per sample (T, C) (soft-clip mode: the observed value)."""
+    th = np.asarray(th, dtype=np.float64)
+    return np.broadcast_to(th[None, :], shape) if th.ndim == 1 else th
+
+
+def threshold_scale(th_hi, th_lo):
+    """Normalization scale: the largest finite clip threshold magnitude."""
+    v = np.concatenate([np.ravel(th_hi)[np.isfinite(np.ravel(th_hi))], np.ravel(th_lo)[np.isfinite(np.ravel(th_lo))], [1e-3]])
+    return float(np.max(np.abs(v)))
 
 
 def pad_bounds(lb, ub, left, right):

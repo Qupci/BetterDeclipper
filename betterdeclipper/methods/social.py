@@ -12,7 +12,7 @@ import torch
 import torch.nn.functional as Fnn
 
 from ..stft import TightSTFT
-from .common import make_bounds, pad_bounds, Box
+from .common import make_bounds, pad_bounds, Box, threshold_scale
 
 
 def _neigh_kernel(nf, nt, device, dtype):
@@ -108,7 +108,7 @@ def declip_social(y, m_hi, m_lo, th_hi, th_lo, win_len=2048, hop=512, nfft=None,
     fweight: None or exponent a; threshold scales as (f / f_ref)^a (a>0 penalizes HF more).
     """
     T, C = y.shape
-    scale = float(np.max(np.abs(np.concatenate([th_hi[np.isfinite(th_hi)], th_lo[np.isfinite(th_lo)], [1e-3]]))))
+    scale = threshold_scale(th_hi, th_lo)
     lb, ub = make_bounds(y / scale, m_hi, m_lo, th_hi / scale, th_lo / scale)
     stft = TightSTFT(win_len, hop, nfft, device, dtype)
     left, right = stft.pad_len(T)

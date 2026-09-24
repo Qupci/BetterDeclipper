@@ -9,7 +9,7 @@ import numpy as np
 import torch
 
 from ..stft import TightSTFT
-from .common import make_bounds, pad_bounds, Box
+from .common import make_bounds, pad_bounds, Box, threshold_scale
 from .social import _neigh_kernel, shrink, channel_mixing
 
 
@@ -21,7 +21,7 @@ def declip_multires(y, m_hi, m_lo, th_hi, th_lo, frames=((4096, 1024, (3, 7)),),
     max_peak: optional absolute upper bound on |x| (e.g. 1.0 = 0 dBFS) for clipped samples.
     """
     T, C = y.shape
-    scale = float(np.max(np.abs(np.concatenate([th_hi[np.isfinite(th_hi)], th_lo[np.isfinite(th_lo)], [1e-3]]))))
+    scale = threshold_scale(th_hi, th_lo)
     lb, ub = make_bounds(y / scale, m_hi, m_lo, th_hi / scale, th_lo / scale)
     if max_peak is not None:
         ub = np.minimum(ub, max_peak / scale)

@@ -19,6 +19,7 @@ import numpy as np
 import torch
 
 from .social import channel_mixing
+from .common import make_bounds, threshold_scale
 from ..stft import overlap_add
 
 
@@ -42,17 +43,13 @@ def _hard_single_k(c, k, rank_w=None):
 
 def declip_spade(y, m_hi, m_lo, th_hi, th_lo, win_len=4096, hop=None, red=2, variant="a",
                  s=8, r=1, eps=0.1, max_iter=1000, stereo="pca", chan_weight=None,
-                 device="cpu", dtype=torch.float32, verbose=False):
+                 device="cpu", dtype=torch.float32, verbose=False, max_gain=None):
     """y: (T, C) clipped signal. Returns (T, C) estimate."""
     T, C = y.shape
     hop = hop or win_len // 4
-    scale = float(np.max(np.abs(np.concatenate([th_hi[np.isfinite(th_hi)], th_lo[np.isfinite(th_lo)], [1e-3]]))))
+    scale = threshold_scale(th_hi, th_lo)
     yy = y.T / scale
-    lb = yy.copy(); ub = yy.copy()
-    thh = (th_hi / scale)[:, None]; thl = (th_lo / scale)[:, None]
-    mh = m_hi.T; ml = m_lo.T
-    lb[mh] = np.broadcast_to(thh, yy.shape)[mh]; ub[mh] = np.inf
-    lb[ml] = -np.inf; ub[ml] = np.broadcast_to(thl, yy.shape)[ml]
+    lb, ub = make_bounds(y / scale, m_hi, m_lo, np.asarray(th_hi) / scale, np.asarray(th_lo) / scale, max_gain)
     pad = win_len - hop
     Tp0 = T + 2 * pad
     extra = (hop - (Tp0 - win_len) % hop) % hop
@@ -84,7 +81,7 @@ def declip_spade(y, m_hi, m_lo, th_hi, th_lo, win_len=4096, hop=None, red=2, var
         u = torch.fft.irfft(c.reshape(c.shape[0], C, K), n=nfft, dim=-1, norm="ortho")[..., :win_len]
         return torch.einsum("ij,njw->niw", Q, u)
 
-    clipped = (torch.isinf(LB).any(-1) | torch.isinf(UB).any(-1)).any(-1)  # (F,)
+    clipped = ((UB - LB) > 0).any(-1).any(-1)  # (F,) frames containing unreliable samples
     idx = torch.nonzero(clipped).flatten()
     out = Yf.clone()
     if idx.numel() > 0:

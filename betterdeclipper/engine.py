@@ -8,12 +8,15 @@ the restoration noticeably (see research/LOG.md).
 """
 import math
 import time
+import warnings
 import numpy as np
 import torch
 
+warnings.filterwarnings("ignore", message=".*smallest subnormal.*")  # side effect of flush-to-zero below
 torch.set_flush_denormal(True)  # denormals are extremely slow on older x86 CPUs (NMF updates create them)
 
-from .detect import detect_clip_levels, clip_masks, estimate_lsb
+from .detect import detect_clip_levels, clip_masks, estimate_lsb, detect_knee
+from .methods.common import full_thresholds, threshold_scale
 from .methods.pnp import declip_pnp
 from .methods.spade import declip_spade
 from .methods.social import channel_mixing
@@ -70,9 +73,46 @@ def _chunks(T, chunk, ctx, fade):
         yield max(0, ia - ctx), min(T, ib + ctx), ia, ib
 
 
+def default_knees(y, knees=None, frac=0.8, peak_discard=1e-4):
+    """Fill missing soft-clip knees with frac x robust peak (per channel and polarity).
+    On synthetic tanh saturation the best declared knee was ~0.75-0.8 x peak (research/LOG.md)."""
+    out = []
+    for c in range(y.shape[1]):
+        kp, kn = knees[c] if knees is not None else (None, None)
+        pos, neg = y[:, c][y[:, c] > 0], -y[:, c][y[:, c] < 0]
+        rp = lambda v: np.quantile(v, 1 - peak_discard) if v.size > 100 else (v.max() if v.size else None)
+        if kp is None and pos.size:
+            kp = frac * rp(pos)
+        if kn is None and neg.size:
+            kn = -frac * rp(neg)
+        out.append((kp, kn))
+    return out
+
+
+def soft_constraints(y, knees, lsb, tol_lsb=2.0):
+    """Soft-clip constraints: beyond the knee, the original is at least as large as the observed
+    value (minus a small quantization tolerance). Returns masks and per-sample thresholds (T, C)."""
+    T, C = y.shape
+    m_hi = np.zeros((T, C), bool); m_lo = np.zeros((T, C), bool)
+    th_hi = np.full((T, C), np.inf); th_lo = np.full((T, C), -np.inf)
+    tol = tol_lsb * max(lsb, 1e-7)
+    for c, (kp, kn) in enumerate(knees):
+        if kp is not None:
+            m_hi[:, c] = y[:, c] >= kp
+            th_hi[m_hi[:, c], c] = y[m_hi[:, c], c] - tol
+        if kn is not None:
+            m_lo[:, c] = y[:, c] <= kn
+            th_lo[m_lo[:, c], c] = y[m_lo[:, c], c] + tol
+    return m_hi, m_lo, th_hi, th_lo
+
+
 def declip(y, sr, preset="normal", levels=None, chunk_s=20.0, ctx_s=1.5, fade_s=0.05,
-           threads=None, verbose=True, progress=None, models=None):
-    """Declip y (T, C) float array. Returns (x_hat (T, C), info dict)."""
+           threads=None, verbose=True, progress=None, models=None, mode="auto", knees=None, max_gain_db=None):
+    """Declip y (T, C) float array. Returns (x_hat (T, C), info dict).
+
+    mode: 'hard' (flat clipping plateau, constraint |x| >= clip level), 'soft' (soft clipping /
+    limiting above a knee, constraint |x| >= |y|), or 'auto' (hard where a plateau is detected,
+    soft where only a knee is found)."""
     t_start = time.time()
     if threads:
         torch.set_num_threads(threads)
@@ -82,17 +122,30 @@ def declip(y, sr, preset="normal", levels=None, chunk_s=20.0, ctx_s=1.5, fade_s=
         y = y[:, None]
     T, C = y.shape
     lsb = estimate_lsb(y)
-    if levels is None:
-        levels = detect_clip_levels(y, lsb)
-    m_hi, m_lo, th_hi, th_lo = clip_masks(y, levels)
+    used_mode = mode
+    if mode == "soft":
+        knees = default_knees(y, knees or detect_knee(y))
+        m_hi, m_lo, th_hi, th_lo = soft_constraints(y, knees, lsb)
+        levels = knees
+    else:
+        if levels is None:
+            levels = detect_clip_levels(y, lsb)
+        m_hi, m_lo, th_hi, th_lo = clip_masks(y, levels)
+        if mode == "auto" and all(a is None and b is None for a, b in levels):
+            knees = knees or detect_knee(y)
+            if any(a is not None or b is not None for a, b in knees):
+                m_hi, m_lo, th_hi, th_lo = soft_constraints(y, knees, lsb)
+                levels, used_mode = knees, "soft"
+        elif mode == "auto":
+            used_mode = "hard"
     clipped = m_hi | m_lo
-    info = dict(levels=levels, clipped_frac=float(clipped.mean()), lsb=lsb, preset=preset)
+    info = dict(levels=levels, clipped_frac=float(clipped.mean()), lsb=lsb, preset=preset, mode=used_mode)
     if not clipped.any():
         info["time"] = time.time() - t_start
         return (y[:, 0] if mono else y), info
     models = models or PRESETS[preset]
     # file-global lambda reference for the PnP models (consistent schedule over chunks)
-    scale = float(np.max(np.abs(np.concatenate([th_hi[np.isfinite(th_hi)], th_lo[np.isfinite(th_lo)]]))))
+    scale = threshold_scale(th_hi, th_lo)
     Q = torch.as_tensor(channel_mixing(y, "pca" if C == 2 else "none"), dtype=torch.float32)
     lam_refs = {}
     for kind, win_ms, extra in models:
@@ -123,13 +176,17 @@ def declip(y, sr, preset="normal", levels=None, chunk_s=20.0, ctx_s=1.5, fade_s=
             wsum[ia:ib] += wt
             continue
         yc, mh, ml = y[a:b], m_hi[a:b], m_lo[a:b]
+        thh = th_hi if th_hi.ndim == 1 else th_hi[a:b]
+        thl = th_lo if th_lo.ndim == 1 else th_lo[a:b]
         ests = []
         for kind, win_ms, extra in models:
             kw = _model_kwargs(kind, win_ms, sr, extra)
+            if max_gain_db is not None:
+                kw["max_gain"] = 10 ** (max_gain_db / 20)
             if kind in ("pnp", "nmf"):
-                est = declip_pnp(yc, mh, ml, th_hi, th_lo, sr=sr, lam_ref=lam_refs[win_ms], **kw)
+                est = declip_pnp(yc, mh, ml, thh, thl, sr=sr, lam_ref=lam_refs[win_ms], **kw)
             else:
-                est = declip_spade(yc, mh, ml, th_hi, th_lo, **kw)
+                est = declip_spade(yc, mh, ml, thh, thl, **kw)
             ests.append(est)
         est = np.mean(ests, axis=0)
         acc[ia:ib] += est[ia - a:ib - a] * wt[:, None]
@@ -139,7 +196,11 @@ def declip(y, sr, preset="normal", levels=None, chunk_s=20.0, ctx_s=1.5, fade_s=
     out = acc / np.maximum(wsum, 1e-12)[:, None]
     # exact consistency: reliable samples untouched, clipped samples beyond the clip level
     out[~clipped] = y[~clipped]
-    out = np.where(m_hi, np.maximum(out, th_hi[None, :]), out)
-    out = np.where(m_lo, np.minimum(out, th_lo[None, :]), out)
+    out = np.where(m_hi, np.maximum(out, full_thresholds(th_hi, out.shape)), out)
+    out = np.where(m_lo, np.minimum(out, full_thresholds(th_lo, out.shape)), out)
+    if max_gain_db is not None:
+        g = 10 ** (max_gain_db / 20)
+        out = np.where(m_hi, np.minimum(out, g * full_thresholds(th_hi, out.shape)), out)
+        out = np.where(m_lo, np.maximum(out, g * full_thresholds(th_lo, out.shape)), out)
     info["time"] = time.time() - t_start
     return (out[:, 0] if mono else out), info

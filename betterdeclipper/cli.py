@@ -24,6 +24,14 @@ def main(argv=None):
     ap.add_argument("--clip-level", default=None,
                     help="override automatic detection: clip level in dBFS (e.g. -12) or linear (e.g. 0.25), "
                          "applied to both polarities of all channels")
+    ap.add_argument("--mode", choices=["auto", "hard", "soft"], default="auto",
+                    help="hard: flat clipping plateau; soft: soft clipping/limiting above a knee "
+                         "(original >= observed); auto: hard if a plateau is found, else soft (default)")
+    ap.add_argument("--knee", default=None,
+                    help="soft mode: force the knee level in dBFS (e.g. -9) or linear (e.g. 0.35)")
+    ap.add_argument("--max-gain", type=float, default=None, metavar="DB",
+                    help="optional safety cap: restored samples may exceed the clip level by at most this "
+                         "many dB (built into the constraints, so restored peaks stay smooth)")
     ap.add_argument("--format", choices=["float", "pcm24", "pcm16"], default="float",
                     help="output sample format (default: 32-bit float, keeps restored peaks above 0 dBFS)")
     ap.add_argument("--normalize", type=float, default=None, metavar="DBFS",
@@ -36,19 +44,27 @@ def main(argv=None):
     y, sr = sf.read(args.input, dtype="float64", always_2d=True)
     C = y.shape[1]
     levels = None
+    knees = None
+    mode = args.mode
     if args.clip_level is not None:
         lv = _parse_level(args.clip_level)
         levels = [(lv, -lv)] * C
+        mode = "hard"
+    if args.knee is not None:
+        kv = _parse_level(args.knee)
+        knees = [(kv, -kv)] * C
+        mode = "soft"
     print(f"input: {args.input}  {sr} Hz, {C} ch, {len(y)/sr:.1f} s")
 
     def progress(i, n, el):
         print(f"  chunk {i}/{n}  elapsed {el:.0f}s", flush=True)
 
-    x, info = declip(y, sr, preset=args.preset, levels=levels, threads=args.threads, progress=progress)
+    x, info = declip(y, sr, preset=args.preset, levels=levels, threads=args.threads, progress=progress,
+                     mode=mode, knees=knees, max_gain_db=args.max_gain)
     lv_str = ", ".join(
         f"ch{c}: " + "/".join("-" if v is None else f"{20*np.log10(abs(v)):.2f} dBFS" for v in lvl)
         for c, lvl in enumerate(info["levels"]))
-    print(f"clip levels: {lv_str}")
+    print(f"mode: {info['mode']}   {'knees' if info['mode'] == 'soft' else 'clip levels'}: {lv_str}")
     print(f"clipped samples: {info['clipped_frac']*100:.2f}%   preset: {args.preset}   time: {info['time']:.1f}s")
     if info["clipped_frac"] == 0:
         print("no clipping detected; output equals input (use --clip-level to force a level)")

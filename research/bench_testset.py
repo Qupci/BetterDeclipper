@@ -46,6 +46,10 @@ def run_method(method, cl, sr, kw):
     if method == "social":
         from betterdeclipper.methods.social import declip_social
         return declip_social(cl, m_hi, m_lo, th_hi, th_lo, **kw), (m_hi | m_lo)
+    if method == "engine":
+        from betterdeclipper.engine import declip
+        x, info = declip(cl, sr, **kw)
+        return x, (m_hi | m_lo)
     raise ValueError(method)
 
 

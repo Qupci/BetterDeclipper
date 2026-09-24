@@ -19,7 +19,7 @@ torch.set_flush_denormal(True)  # denormals are very slow on older x86 CPUs
 import torch.nn.functional as Fnn
 
 from ..stft import TightSTFT
-from .common import make_bounds, pad_bounds, Box
+from .common import make_bounds, pad_bounds, Box, threshold_scale
 from .social import _neigh_kernel, channel_mixing
 
 
@@ -139,10 +139,11 @@ def declip_pnp(y, m_hi, m_lo, th_hi, th_lo, sr=44100, win_len=4096, hop=1024, ne
                combine="max", shifts=1, n_iter=400, lam0=0.1, lam1=1e-4, stereo="pca", momentum=True,
                chan_gain=None, fweight=None, pilot=None, pilot_mix=0.0, gain_mode="pew", relax=1.0,
                device="cpu", dtype=torch.float32, callback=None, x_init=None, lam_ref=None,
-               den_type="pew", nmf_rank=32, nmf_iter=2, nmf_beta=1.0, nmf_smooth=0.0, nmf_rank_ratio=None):
+               den_type="pew", nmf_rank=32, nmf_iter=2, nmf_beta=1.0, nmf_smooth=0.0, nmf_rank_ratio=None,
+               max_gain=None):
     T, C = y.shape
-    scale = float(np.max(np.abs(np.concatenate([th_hi[np.isfinite(th_hi)], th_lo[np.isfinite(th_lo)], [1e-3]]))))
-    lb, ub = make_bounds(y / scale, m_hi, m_lo, th_hi / scale, th_lo / scale)
+    scale = threshold_scale(th_hi, th_lo)
+    lb, ub = make_bounds(y / scale, m_hi, m_lo, th_hi / scale, th_lo / scale, max_gain)
     stft = TightSTFT(win_len, hop, None, device, dtype)
     left, right = stft.pad_len(T)
     # extra right padding so that circular shifts only wrap free (padded) samples

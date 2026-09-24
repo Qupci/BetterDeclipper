@@ -32,8 +32,19 @@ python -m betterdeclipper in.wav out.wav --format pcm24 --normalize -0.1
 - Output is 32-bit float by default: restored peaks can exceed the clip level (and even 0 dBFS
   when the input was clipped at full scale). For PCM output, use `--normalize` or `--gain`.
 - Any sample rate works (window lengths are defined in milliseconds).
-- `--clip-level` forces a level when auto-detection finds nothing. For example, soft-clipped masters
-  have no flat plateau at the top of the waveform.
+- `--clip-level` forces a hard-clip level (e.g. when auto-detection finds nothing).
+- **Clipping modes** (`--mode`, default `auto`):
+  - `hard`: a flat clipping plateau (digital clipping, possibly dithered or requantized). Restored
+    samples must lie beyond the clip level.
+  - `soft`: soft clipping or heavy limiting (e.g. loudness-war masters without a flat top). Above a
+    knee, the original is assumed to be at least as large as the observed sample. The knee comes from
+    the pile-up of the amplitude histogram, or `0.8 x peak` if there is none (`--knee` overrides it).
+    This is experimental: on a synthetic tanh-saturated test it improved SDR from 24.1 to 34.0 dB.
+  - `auto`: `hard` if a plateau is found, `soft` if only a histogram pile-up is found, otherwise
+    the input is returned unchanged.
+- `--max-gain DB` is an optional safety cap. Restored samples may exceed the clip level by at most
+  DB decibels, and the cap is part of the constraints, so peaks stay smooth. It is off by default: in
+  the example, the true peaks are 11.8 dB above the clip level.
 
 Presets (each averages structurally different models):
 
@@ -48,7 +59,8 @@ Presets (each averages structurally different models):
 
 1. **Clip detection** (`detect.py`). Clipped samples form a dense plateau in the amplitude histogram.
    The plateau's lower edge becomes the clip level, separately per channel and polarity. This
-   tolerates dither and requantization noise, which smears the plateau over a few LSBs.
+   tolerates dither and requantization noise, which smears the plateau over a few LSBs. For
+   soft clipping, a knee is detected where the amplitude density rises above its natural decay.
 2. **Consistency**. Unclipped samples are kept exactly. Clipped samples are only allowed to lie
    beyond the clip level, with the sign of the clipped sample.
 3. **Restoration models**. Each one finds a consistent signal that fits a prior of the time-frequency (TF) coefficients:
