@@ -1,0 +1,12 @@
+# audio & large data (kept locally, not versioned)
+*.wav
+*.flac
+ex_sample/
+testset/
+ProAudioDeclipper/
+research/outputs/
+research/pad_runs/
+research/_vendor/
+# python
+__pycache__/
+*.pyc

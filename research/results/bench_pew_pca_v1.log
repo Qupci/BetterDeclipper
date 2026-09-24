@@ -1,0 +1,10 @@
+example          in  10.47  out  23.44  d  12.97  c  21.99  PAD  21.82  (149s)
+ghostpage48_-12  in   5.69  out  11.37  d   5.68  c  11.02  (96s)
+ghostpage48_-6   in  13.37  out  19.19  d   5.82  c  16.73  (97s)
+gris48_-12       in   8.60  out  20.43  d  11.83  c  19.33  (96s)
+gris48_-6        in  20.13  out  34.58  d  14.45  c  28.24  (96s)
+lofi48_-12       in   9.09  out  17.82  d   8.73  c  15.91  (96s)
+lofi48_-6        in  17.12  out  22.87  d   5.75  c  16.06  (94s)
+merlon48_-12     in   7.69  out  17.94  d  10.25  c  17.01  (96s)
+merlon48_-6      in  17.47  out  29.34  d  11.87  c  24.38  (96s)
+MEAN dSDR 9.704  MEAN SDR 21.886

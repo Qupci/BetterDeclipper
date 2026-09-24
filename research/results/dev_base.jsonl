@@ -1,0 +1,1 @@
+{"kw": {"win_ms": 92.9, "neigh": [3, 7], "n_iter": 400, "stereo": "pca"}, "method": "social", "mean_dsdr": 10.031581179725103, "per_case": {"example": 24.089, "merlon48_-12": 17.625, "lofi48_-12": 22.385, "ghostpage48_-6": 19.469}, "time": 89.8189148902893}
