@@ -1,0 +1,7 @@
+input: ex_sample/sample_-12dB_clipped.wav  44100 Hz, 2 ch, 21.7 s
+  chunk 1/2  elapsed 323s
+  chunk 2/2  elapsed 373s
+clip levels: ch0: -12.04 dBFS/-12.04 dBFS, ch1: -12.04 dBFS/-12.04 dBFS
+clipped samples: 26.79%   preset: best   time: 373.0s
+output: research/outputs/cli_best_full.wav  peak -0.30 dBFS (float)
+best preset: SDR 25.00 dB, clipped-samples SDR 23.57 dB
