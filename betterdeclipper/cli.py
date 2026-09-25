@@ -60,7 +60,7 @@ def main(argv=None):
     print(f"input: {args.input}  {sr} Hz, {C} ch, {len(y)/sr:.1f} s")
 
     def progress(i, n, el):
-        print(f"  chunk {i}/{n}  elapsed {el:.0f}s", flush=True)
+        print(f"  step {i}/{n}  elapsed {el:.0f}s", flush=True)
 
     x, info = declip(y, sr, preset=args.preset, levels=levels, threads=args.threads, progress=progress,
                      mode=mode, knees=knees, max_gain_db=args.max_gain, device=args.device)

@@ -11,3 +11,4 @@ research/_vendor/
 __pycache__/
 *.pyc
 .venv/
+research/results/venv_install.log

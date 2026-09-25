@@ -7,21 +7,24 @@ Offline audio declipper that aims to restore clipped audio as closely as possibl
 
 On the provided example (`ex_sample/`: 21.7 s, 44.1 kHz stereo, hard-clipped at -12 dBFS, so 26.8 %
 of samples are clipped, then dithered to 16 bit). Score is SDR against the ground truth; higher is better.
+The example audio and the ProAudioDeclipper files are not included in this repository.
 
-| restoration | SDR (whole file) | SDR (clipped samples only) | time on i5-2320 |
-|-------------|------------------|----------------------------|-----------------|
-| clipped input | 10.47 dB | 9.04 dB | - |
-| ProAudioDeclipper (provided output) | 21.82 dB | 20.41 dB | - |
-| BetterDeclipper `--preset fast` | **24.17 dB** | 22.73 dB | 38 s |
-| BetterDeclipper `--preset normal` | **25.21 dB** | 23.78 dB | 2.6 min |
-| BetterDeclipper `--preset high` | **25.30 dB** | 23.87 dB | 3.3 min |
-| BetterDeclipper `--preset best` | **25.37 dB** | 23.94 dB | 6.5 min |
+| restoration | SDR (whole file) | SDR (clipped samples only) | CPU (i5-2320) | GPU (GTX 1660 Ti) |
+|-------------|------------------|----------------------------|---------------|-------------------|
+| clipped input | 10.47 dB | 9.04 dB | - | - |
+| ProAudioDeclipper (provided output) | 21.82 dB | 20.41 dB | - | - |
+| BetterDeclipper `--preset fast` | **24.17 dB** | 22.73 dB | 35 s | 1.5 s |
+| BetterDeclipper `--preset normal` | **25.21 dB** | 23.78 dB | 142 s | 6.6 s |
+| BetterDeclipper `--preset high` | **25.30 dB** | 23.87 dB | 181 s | 8.9 s |
+| BetterDeclipper `--preset best` | **25.37 dB** | 23.94 dB | 313 s | 13.6 s |
 
-Even the `fast` preset (1.75x real time on a 2011 quad-core CPU) beats ProAudioDeclipper by 2.3 dB.
+Even the `fast` preset beats ProAudioDeclipper by 2.3 dB. GPU and CPU give the same quality (within 0.004 dB).
 
 ## Usage
 
-Requires Python 3 with `numpy`, `scipy`, `soundfile` and `torch` (the CPU build is enough).
+Requires Python 3 with `numpy`, `scipy`, `soundfile` and `torch`. The CPU build of torch works;
+an NVIDIA GPU with the CUDA build of torch is much faster (see [GPU](#gpu-acceleration)).
+On this machine, `declip.bat in.wav out.wav` uses the GPU environment in `.venv` automatically.
 
 ```
 python -m betterdeclipper input.wav output.wav                 # auto-detect clip level, "normal" preset
@@ -49,12 +52,49 @@ python -m betterdeclipper in.wav out.wav --format pcm24 --normalize -0.1
 
 Presets (each averages structurally different models):
 
-| preset | models averaged | time on the example (21.7 s audio) |
-|--------|-----------------|---------------|
-| fast   | NMF-PnP (150 it) | 38 s |
-| normal | NMF-PnP (weight 0.65) + stereo A-SPADE (0.35) | 158 s |
-| high   | NMF-PnP + PEW-PnP + stereo A-SPADE | 199 s |
-| best   | like `high` with twice the iterations | 387 s |
+| preset | models averaged | example (21.7 s): CPU / GPU |
+|--------|-----------------|-----------------------------|
+| fast   | NMF-PnP (150 it) | 35 s / 1.5 s |
+| normal | NMF-PnP (weight 0.65) + stereo A-SPADE (0.35) | 142 s / 6.6 s |
+| high   | NMF-PnP + PEW-PnP + stereo A-SPADE | 181 s / 8.9 s |
+| best   | like `high` with twice the iterations | 313 s / 13.6 s |
+
+## GPU acceleration
+
+All processing is PyTorch tensor code (FFTs, elementwise math, small matrix products), so it runs
+on an NVIDIA GPU unchanged. `--device auto` (the default) uses the GPU when the installed torch
+has CUDA support, otherwise the CPU. Force one with `--device cpu` or `--device cuda`.
+
+One-time setup of a GPU environment (the torch download is ~2.5 GB):
+```
+python -m venv .venv
+.venv\Scripts\python -m pip install torch --index-url https://download.pytorch.org/whl/cu126
+.venv\Scripts\python -m pip install numpy scipy soundfile
+declip.bat input.wav output.wav
+```
+`cu126` builds support NVIDIA GPUs from the GTX 900 series (Maxwell) onward, with a recent driver.
+
+Measured on a GTX 1660 Ti (6 GB) with an i5-2320 host. The example numbers are in the tables above.
+
+| input | preset | CPU | GPU | GPU speed vs real time |
+|-------|--------|-----|-----|------------------------|
+| 174 s, 27 % clipped (worst case) | fast | ~4.7 min * | 13.6 s | 12.8x faster |
+| | normal | ~19 min * | 49.7 s | 3.5x faster |
+| | high | ~24 min * | 71.9 s | 2.4x faster |
+| 15 s, 48 kHz, 29 % clipped | normal | 145 s | 10 s | 1.5x faster |
+
+\* CPU times for the 174 s file are estimated as 8x the measured 21.7 s example time.
+
+GPU memory use is under 2 GB. What makes it fast:
+- **Everything stays on the GPU.** Each chunk is uploaded once, and all iterations run there.
+- **CUDA graphs.** For the PnP/NMF models, one iteration is recorded once and replayed, so the
+  ~60 small kernel launches per iteration don't bottleneck on a slower host CPU. If capture fails,
+  the solver falls back to normal execution with identical results. Set `BD_CUDA_GRAPHS=0` to
+  disable graphs.
+- **SPADE runs over the whole file** in large frame batches sized to the free GPU memory, instead of
+  once per 20 s chunk. The working set shrinks in steps of 64 frames, so cuFFT plans are reused.
+- **Device-specific selection.** SPADE's k-largest selection uses `topk` on GPUs and `kthvalue` on
+  CPUs (same result; each is faster on its device).
 
 ## How it works
 
@@ -82,8 +122,9 @@ Presets (each averages structurally different models):
    slightly undershoot peaks, while SPADE overshoots (PAD behaves like SPADE). Their errors are only
    weakly correlated (~0.5), so averaging adds up to about 1 dB. The average of consistent signals is
    still consistent.
-5. **Speed**. torch float32 FFTs, vectorized frames, slice-add overlap-add, and flush-to-zero
-   for denormal floats. Without flush-to-zero, the NMF updates run 10x slower on older CPUs.
+5. **Speed**. torch float32 FFTs, vectorized frames, slice-add overlap-add, in-place updates,
+   and flush-to-zero for denormal floats. Without flush-to-zero, the NMF updates run 10x slower
+   on older CPUs. An NVIDIA GPU runs the same code 20x faster (see above).
 6. **Chunking**. Processing runs in 20 s chunks with 1.5 s of context and a short crossfade, so
    memory stays bounded. Chunks without clipping are copied through.
 

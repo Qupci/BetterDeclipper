@@ -118,3 +118,24 @@ NMF + local PEW energy hybrid (nmf_smooth 0.3/0.6): 25.37/25.14 vs 25.46 pure NM
 **normal preset with 0.65/0.35: 25.21 dB on the full example** (was 24.93), 158 s.
 Robustness: mono asym float, 3 channels, 24-bit container, clean passthrough all OK.
 best (2x iterations): 25.37 dB, clipped-samples 23.94 dB, 387 s
+
+## GPU acceleration (GTX 1660 Ti 6 GB, torch 2.14.0+cu126 in project .venv)
+- Everything is torch already; added device plumbing (engine/CLI `--device auto|cpu|cuda`).
+- Exact CPU speedups found on the way (bit-identical outputs): reuse NMF H@W.T between iterations,
+  in-place ops, 2x2 channel mixing as elementwise ops instead of einsum (einsum -> bmm with inner
+  dim 2 was the largest GPU kernel and slow on CPU too), SPADE compacted working set.
+  CPU example: fast 38 -> 35 s, normal 158 -> 142 s, high 199 -> 181 s, best 387 -> 313 s.
+- GPU profiling: small inputs are launch-bound (~60 kernels/iteration on a slow host CPU); 20 s
+  chunks are GPU-bound (NMF ~7.5 ms/iteration: ~5.5 ms elementwise passes, 1.3 ms GEMM, 0.55 ms FFT).
+- CUDA graphs for the PnP/NMF loop (static buffers, lambda^2 / momentum as device scalars, eager
+  fallback): bit-identical to eager GPU; 2x on 5 s inputs, ~0 on 21.7 s (GPU-bound).
+- SPADE: whole file in frame batches sized from free memory, working set shrinks in steps of 64
+  rows (cuFFT plan reuse), topk on GPU / kthvalue on CPU (identical threshold, faster per device).
+  Output via OLA of corrections: float32-level differences only (1.2e-7).
+- Results (SDR identical within 0.004 dB):
+  | preset | example CPU | example GPU | 174 s file GPU |
+  |--------|-------------|-------------|----------------|
+  | fast   | 35 s  | 1.5 s  | 13.6 s |
+  | normal | 142 s | 6.6 s  | 49.7 s |
+  | high   | 181 s | 8.9 s  | 71.9 s |
+  | best   | 313 s | 13.6 s | - |

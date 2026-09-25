@@ -53,3 +53,34 @@ class Box:
 
     def __call__(self, x):
         return torch.clamp(x, min=self.lb, max=self.ub)  # lb <= ub everywhere
+
+
+class ChannelMix:
+    """Orthogonal channel mixing x = Q u (and u = Q^T x) along a channel axis.
+
+    For 2 channels this is 4 scalar multiply-adds per sample; einsum would dispatch a batched
+    matmul with an inner dimension of 2, which is very slow on GPUs."""
+
+    def __init__(self, Q):
+        self.Qn = np.asarray(Q, dtype=np.float64)
+        self.C = self.Qn.shape[0]
+        self.identity = bool(np.allclose(self.Qn, np.eye(self.C)))
+
+    def _apply(self, M, x, dim):
+        if self.identity:
+            return x
+        if self.C == 2:
+            x0, x1 = x.select(dim, 0), x.select(dim, 1)
+            y0 = x0 * float(M[0, 0]) + x1 * float(M[0, 1])
+            y1 = x0 * float(M[1, 0]) + x1 * float(M[1, 1])
+            return torch.stack([y0, y1], dim)
+        Mt = torch.as_tensor(M, dtype=x.dtype if not x.is_complex() else x.real.dtype, device=x.device)
+        return torch.movedim(torch.tensordot(Mt, torch.movedim(x, dim, 0), dims=1), 0, dim)
+
+    def mix(self, u, dim=0):
+        """x = Q u"""
+        return self._apply(self.Qn, u, dim)
+
+    def unmix(self, x, dim=0):
+        """u = Q^T x"""
+        return self._apply(self.Qn.T, x, dim)

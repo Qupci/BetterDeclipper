@@ -175,43 +175,49 @@ def declip(y, sr, preset="normal", levels=None, chunk_s=20.0, ctx_s=1.5, fade_s=
                     zmax = max(zmax, float(torch.abs(st.analysis(seg)).max()))
             lam_refs[win_ms] = zmax
     chunk, ctx, fade = int(chunk_s * sr), int(ctx_s * sr), max(2, int(fade_s * sr))
-    out = y.copy()
-    wsum = np.zeros(T)
-    acc = np.zeros((T, C))
     spans = list(_chunks(T, chunk, ctx, fade))
-    for ci, (a, b, ia, ib) in enumerate(spans):
-        # crossfade weights for the kept interior
-        wt = np.ones(ib - ia)
-        if ia > 0:
-            wt[:fade] = np.linspace(0, 1, fade + 2)[1:-1][: min(fade, ib - ia)]
-        if ib < T:
-            wt[-fade:] = np.minimum(wt[-fade:], np.linspace(1, 0, fade + 2)[1:-1])
-        if not clipped[a:b].any():
-            acc[ia:ib] += y[ia:ib] * wt[:, None]
-            wsum[ia:ib] += wt
-            continue
-        yc, mh, ml = y[a:b], m_hi[a:b], m_lo[a:b]
-        thh = th_hi if th_hi.ndim == 1 else th_hi[a:b]
-        thl = th_lo if th_lo.ndim == 1 else th_lo[a:b]
-        ests, wts = [], []
-        for kind, win_ms, extra in models:
-            extra = dict(extra)
-            wts.append(extra.pop("weight", 1.0))
-            kw = _model_kwargs(kind, win_ms, sr, extra)
-            if max_gain_db is not None:
-                kw["max_gain"] = 10 ** (max_gain_db / 20)
-            if kind in ("pnp", "nmf"):
-                est = declip_pnp(yc, mh, ml, thh, thl, sr=sr, lam_ref=lam_refs[win_ms], device=device, **kw)
-            else:
-                est = declip_spade(yc, mh, ml, thh, thl, device=device, **kw)
-            ests.append(est)
-        wts = np.asarray(wts) / np.sum(wts)
-        est = np.tensordot(wts, np.stack(ests, 0), axes=1)
-        acc[ia:ib] += est[ia - a:ib - a] * wt[:, None]
-        wsum[ia:ib] += wt
+    n_steps = sum(1 if kind == "spade" else len(spans) for kind, _, _ in models)
+    step = [0]
+
+    def tick():
+        step[0] += 1
         if progress:
-            progress(ci + 1, len(spans), time.time() - t_start)
-    out = acc / np.maximum(wsum, 1e-12)[:, None]
+            progress(step[0], n_steps, time.time() - t_start)
+
+    ests, wts = [], []
+    for kind, win_ms, extra in models:
+        extra = dict(extra)
+        wts.append(extra.pop("weight", 1.0))
+        kw = _model_kwargs(kind, win_ms, sr, extra)
+        if max_gain_db is not None:
+            kw["max_gain"] = 10 ** (max_gain_db / 20)
+        if kind == "spade":
+            # frame-wise and independent per frame: one pass over the whole file (internally batched)
+            ests.append(declip_spade(y, m_hi, m_lo, th_hi, th_lo, device=device, **kw))
+            tick()
+            continue
+        # global (per-chunk) models: overlapping chunks with context, crossfaded interiors
+        acc = np.zeros((T, C))
+        wsum = np.zeros(T)
+        for a, b, ia, ib in spans:
+            wt = np.ones(ib - ia)
+            if ia > 0:
+                wt[:fade] = np.linspace(0, 1, fade + 2)[1:-1][: min(fade, ib - ia)]
+            if ib < T:
+                wt[-fade:] = np.minimum(wt[-fade:], np.linspace(1, 0, fade + 2)[1:-1])
+            if clipped[a:b].any():
+                thh = th_hi if th_hi.ndim == 1 else th_hi[a:b]
+                thl = th_lo if th_lo.ndim == 1 else th_lo[a:b]
+                est = declip_pnp(y[a:b], m_hi[a:b], m_lo[a:b], thh, thl, sr=sr, lam_ref=lam_refs[win_ms],
+                                 device=device, **kw)[ia - a:ib - a]
+            else:
+                est = y[ia:ib]
+            acc[ia:ib] += est * wt[:, None]
+            wsum[ia:ib] += wt
+            tick()
+        ests.append(acc / np.maximum(wsum, 1e-12)[:, None])
+    wts = np.asarray(wts) / np.sum(wts)
+    out = np.tensordot(wts, np.stack(ests, 0), axes=1)
     # exact consistency: reliable samples untouched, clipped samples beyond the clip level
     out[~clipped] = y[~clipped]
     out = np.where(m_hi, np.maximum(out, full_thresholds(th_hi, out.shape)), out)
