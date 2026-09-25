@@ -65,7 +65,7 @@ class PEWDenoiser:
                 g = e / (e + lam2)
             else:
                 g = torch.clamp(1.0 - lam2 / (e + 1e-30), min=0.0)
-            xd = self.stft.synthesis(z * g, Tp)
+            xd = self.stft.synthesis(z.mul_(g), Tp)
             out += torch.roll(xd, s, dims=-1) if s else xd
         return out / len(self.shifts)
 
@@ -96,9 +96,11 @@ class NMFDenoiser:
             m = P.mean()
             self.W = (torch.rand(K, self.rank, generator=g, dtype=self.dtype) + 0.1).to(self.device) * torch.sqrt(m)
             self.H = (torch.rand(N, self.rank, generator=g, dtype=self.dtype) + 0.1).to(self.device) * torch.sqrt(m)
+            self._V = None
         W, H, b = self.W, self.H, self.beta
-        for _ in range(n_iter):
-            V = H @ W.T + eps
+        for i in range(n_iter):
+            # H, W are unchanged since the previous call returned H @ W.T, so reuse it (exact)
+            V = self._V if (i == 0 and self._V is not None) else H @ W.T + eps
             if b == 1.0:  # KL: denominators are column sums (ones @ W == W.sum(0))
                 H = H * ((P / V) @ W) / (W.sum(0, keepdim=True) + eps)
                 V = H @ W.T + eps
@@ -112,7 +114,9 @@ class NMFDenoiser:
             W = W / s
             H = H * s
         self.W, self.H = W, H
-        return H @ W.T
+        V = H @ W.T
+        self._V = V + eps
+        return V
 
     def __call__(self, x, lam):
         Tp = x.shape[-1]
@@ -129,10 +133,11 @@ class NMFDenoiser:
         if self.chan_gain is not None:
             lam2 = lam2 * self.chan_gain ** 2
         if self.gain_mode == "wiener":
-            g = V / (V + lam2)
+            g = V + lam2
+            torch.div(V, g, out=g)
         else:
             g = torch.clamp(1.0 - lam2 / (V + 1e-30), min=0.0)
-        return self.stft.synthesis(z * g, Tp)
+        return self.stft.synthesis(z.mul_(g), Tp)
 
 
 def declip_pnp(y, m_hi, m_lo, th_hi, th_lo, sr=44100, win_len=4096, hop=1024, neigh=(3, 7), neighs=None,

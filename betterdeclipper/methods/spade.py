@@ -38,7 +38,7 @@ def _hard_single_k(c, k, rank_w=None):
     mag = c.real ** 2 + c.imag ** 2
     rmag = mag if rank_w is None else mag * rank_w
     thr = torch.kthvalue(rmag, rmag.shape[-1] - k + 1, dim=-1, keepdim=True)[0]
-    return c * (rmag >= thr)
+    return c.masked_fill_(rmag < thr, 0)  # in place: c is a temporary
 
 
 def declip_spade(y, m_hi, m_lo, th_hi, th_lo, win_len=4096, hop=None, red=2, variant="a",
@@ -94,23 +94,31 @@ def declip_spade(y, m_hi, m_lo, th_hi, th_lo, win_len=4096, hop=None, red=2, var
         M = C * K
         kk = s
         if variant == "a":
+            # Work on a compacted set of active frames that only shrinks when frames converge
+            # (no per-iteration gather/scatter), with in-place updates. Same arithmetic as before.
             x = yv.clone()
-            u = torch.zeros_like(A(yv))
-            act = torch.arange(n, device=device)
+            idx_act = torch.arange(n, device=device)
+            xa, ua = x, torch.zeros_like(A(yv))
+            LBa, UBa = LB_, UB_
             for i in range(max_iter):
-                xa, ua = x[act], u[act]
-                c = A(xa) + ua
-                zb = _hard_single_k(c, min(kk, M), rank_w)
-                xn = torch.maximum(torch.minimum(As(zb - ua), UB_[act]), LB_[act])
-                res = A(xn) - zb
+                zb = _hard_single_k(A(xa).add_(ua), min(kk, M), rank_w)
+                xn = torch.clamp(As(zb - ua), min=LBa, max=UBa)
+                res = A(xn).sub_(zb)
                 nr = torch.sqrt((res.real ** 2 + res.imag ** 2).sum(-1))
-                x[act] = xn
-                u[act] = ua + res
-                act = act[nr > eps]
+                ua.add_(res)
+                xa = xn
                 if (i + 1) % r == 0:
                     kk += s
-                if act.numel() == 0:
+                keep = nr > eps
+                n_keep = int(keep.sum())
+                if n_keep < xa.shape[0]:
+                    done = ~keep
+                    x[idx_act[done]] = xa[done]
+                    idx_act, xa, ua, LBa, UBa = idx_act[keep], xa[keep], ua[keep], LBa[keep], UBa[keep]
+                if n_keep == 0:
                     break
+            if idx_act.numel():
+                x[idx_act] = xa
             est = x
         else:
             z = A(yv)

@@ -10,3 +10,4 @@ research/_vendor/
 # python
 __pycache__/
 *.pyc
+.venv/

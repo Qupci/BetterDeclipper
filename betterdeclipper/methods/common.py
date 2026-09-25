@@ -52,4 +52,4 @@ class Box:
         self.ub = torch.as_tensor(ub, dtype=dtype, device=device)
 
     def __call__(self, x):
-        return torch.maximum(torch.minimum(x, self.ub), self.lb)
+        return torch.clamp(x, min=self.lb, max=self.ub)  # lb <= ub everywhere

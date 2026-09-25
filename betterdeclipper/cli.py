@@ -38,7 +38,9 @@ def main(argv=None):
     ap.add_argument("--normalize", type=float, default=None, metavar="DBFS",
                     help="scale output so its peak is at this level (e.g. -0.1); recommended with PCM output")
     ap.add_argument("--gain", type=float, default=0.0, metavar="DB", help="output gain in dB")
-    ap.add_argument("--threads", type=int, default=None)
+    ap.add_argument("--device", default="auto",
+                    help="auto (default: CUDA GPU if available, else CPU), cpu, cuda, or cuda:N")
+    ap.add_argument("--threads", type=int, default=None, help="CPU threads (CPU processing only)")
     ap.add_argument("--version", action="version", version=__version__)
     args = ap.parse_args(argv)
 
@@ -61,12 +63,13 @@ def main(argv=None):
         print(f"  chunk {i}/{n}  elapsed {el:.0f}s", flush=True)
 
     x, info = declip(y, sr, preset=args.preset, levels=levels, threads=args.threads, progress=progress,
-                     mode=mode, knees=knees, max_gain_db=args.max_gain)
+                     mode=mode, knees=knees, max_gain_db=args.max_gain, device=args.device)
     lv_str = ", ".join(
         f"ch{c}: " + "/".join("-" if v is None else f"{20*np.log10(abs(v)):.2f} dBFS" for v in lvl)
         for c, lvl in enumerate(info["levels"]))
     print(f"mode: {info['mode']}   {'knees' if info['mode'] == 'soft' else 'clip levels'}: {lv_str}")
-    print(f"clipped samples: {info['clipped_frac']*100:.2f}%   preset: {args.preset}   time: {info['time']:.1f}s")
+    print(f"clipped samples: {info['clipped_frac']*100:.2f}%   preset: {args.preset}   device: {info.get('device', 'cpu')}"
+          f"   time: {info['time']:.1f}s")
     if info["clipped_frac"] == 0:
         print("no clipping detected; output equals input (use --clip-level to force a level)")
     x = x * 10 ** (args.gain / 20)

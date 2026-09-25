@@ -74,6 +74,16 @@ def _chunks(T, chunk, ctx, fade):
         yield max(0, ia - ctx), min(T, ib + ctx), ia, ib
 
 
+def resolve_device(device="auto"):
+    """'auto' -> first CUDA GPU if this torch build has CUDA and a GPU is present, else CPU."""
+    if device in (None, "auto"):
+        return torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    dev = torch.device(device)
+    if dev.type == "cuda" and not torch.cuda.is_available():
+        raise RuntimeError("CUDA requested but not available (CPU-only torch build or no NVIDIA GPU); use --device cpu")
+    return dev
+
+
 def default_knees(y, knees=None, frac=0.8, peak_discard=1e-4):
     """Fill missing soft-clip knees with frac x robust peak (per channel and polarity).
     On synthetic tanh saturation the best declared knee was ~0.75-0.8 x peak (research/LOG.md)."""
@@ -108,15 +118,18 @@ def soft_constraints(y, knees, lsb, tol_lsb=2.0):
 
 
 def declip(y, sr, preset="normal", levels=None, chunk_s=20.0, ctx_s=1.5, fade_s=0.05,
-           threads=None, verbose=True, progress=None, models=None, mode="auto", knees=None, max_gain_db=None):
+           threads=None, verbose=True, progress=None, models=None, mode="auto", knees=None, max_gain_db=None,
+           device="auto"):
     """Declip y (T, C) float array. Returns (x_hat (T, C), info dict).
 
     mode: 'hard' (flat clipping plateau, constraint |x| >= clip level), 'soft' (soft clipping /
     limiting above a knee, constraint |x| >= |y|), or 'auto' (hard where a plateau is detected,
-    soft where only a knee is found)."""
+    soft where only a knee is found).
+    device: 'auto' (CUDA GPU if available, else CPU), 'cpu', 'cuda' or 'cuda:N'."""
     t_start = time.time()
     if threads:
         torch.set_num_threads(threads)
+    device = resolve_device(device)
     y = np.asarray(y, dtype=np.float64)
     mono = y.ndim == 1
     if mono:
@@ -140,20 +153,21 @@ def declip(y, sr, preset="normal", levels=None, chunk_s=20.0, ctx_s=1.5, fade_s=
         elif mode == "auto":
             used_mode = "hard"
     clipped = m_hi | m_lo
-    info = dict(levels=levels, clipped_frac=float(clipped.mean()), lsb=lsb, preset=preset, mode=used_mode)
+    info = dict(levels=levels, clipped_frac=float(clipped.mean()), lsb=lsb, preset=preset, mode=used_mode,
+                device=str(device))
     if not clipped.any():
         info["time"] = time.time() - t_start
         return (y[:, 0] if mono else y), info
     models = models or PRESETS[preset]
     # file-global lambda reference for the PnP models (consistent schedule over chunks)
     scale = threshold_scale(th_hi, th_lo)
-    Q = torch.as_tensor(channel_mixing(y, "pca" if C == 2 else "none"), dtype=torch.float32)
+    Q = torch.as_tensor(channel_mixing(y, "pca" if C == 2 else "none"), dtype=torch.float32, device=device)
     lam_refs = {}
     for kind, win_ms, extra in models:
         if kind in ("pnp", "nmf") and win_ms not in lam_refs:
             W = nice_len(win_ms * 1e-3 * sr)
-            st = TightSTFT(W, W // 4)
-            u = torch.einsum("ji,tj->it", Q, torch.as_tensor(y / scale, dtype=torch.float32))
+            st = TightSTFT(W, W // 4, device=device)
+            u = torch.einsum("ji,tj->it", Q, torch.as_tensor(y / scale, dtype=torch.float32, device=device))
             zmax = 0.0
             for a in range(0, T, 60 * sr):  # blockwise to bound memory
                 seg = u[:, a:a + 60 * sr + W]
@@ -187,9 +201,9 @@ def declip(y, sr, preset="normal", levels=None, chunk_s=20.0, ctx_s=1.5, fade_s=
             if max_gain_db is not None:
                 kw["max_gain"] = 10 ** (max_gain_db / 20)
             if kind in ("pnp", "nmf"):
-                est = declip_pnp(yc, mh, ml, thh, thl, sr=sr, lam_ref=lam_refs[win_ms], **kw)
+                est = declip_pnp(yc, mh, ml, thh, thl, sr=sr, lam_ref=lam_refs[win_ms], device=device, **kw)
             else:
-                est = declip_spade(yc, mh, ml, thh, thl, **kw)
+                est = declip_spade(yc, mh, ml, thh, thl, device=device, **kw)
             ests.append(est)
         wts = np.asarray(wts) / np.sum(wts)
         est = np.tensordot(wts, np.stack(ests, 0), axes=1)
