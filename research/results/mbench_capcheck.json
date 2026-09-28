@@ -1,0 +1,86 @@
+{
+ "ex__al1_6": {
+  "in": 21.08170677911085,
+  "auto": 23.066779817564015,
+  "auto#mode": "limiter, limiter knee 0.50",
+  "auto#flag": 0.2748472556246978
+ },
+ "ex__osal1": {
+  "in": 9.349891841785327,
+  "auto": 11.451727436068804,
+  "auto#mode": "limiter, limiter knee 0.50",
+  "auto#flag": 0.43719898526244405
+ },
+ "petal__al1_6": {
+  "in": 17.92763154537592,
+  "auto": 19.45101565984127,
+  "auto#mode": "limiter, limiter knee 0.50",
+  "auto#flag": 0.16807709750566893
+ },
+ "petal__osal1": {
+  "in": 8.774730200104077,
+  "auto": 10.148930259025178,
+  "auto#mode": "limiter, limiter knee 0.50",
+  "auto#flag": 0.32551398337112625
+ },
+ "ruder__al1_6": {
+  "in": 9.504030826292931,
+  "auto": 9.559530241627106,
+  "auto#mode": "limiter+smeared, limiter knee 0.50",
+  "auto#flag": 0.09954383975812547
+ },
+ "ruder__osal1": {
+  "in": 6.300831119385131,
+  "auto": 6.7303249477333535,
+  "auto#mode": "limiter+smeared, limiter knee 0.50, soft knee 0.83",
+  "auto#flag": 0.21551738473167045
+ },
+ "thrash__al1_6": {
+  "in": 16.464510739706423,
+  "auto": 19.014129397936447,
+  "auto#mode": "limiter, limiter knee 0.50",
+  "auto#flag": 0.20754119425547998
+ },
+ "thrash__osal1": {
+  "in": 7.857302092022579,
+  "auto": 9.14069782459951,
+  "auto#mode": "limiter, limiter knee 0.50",
+  "auto#flag": 0.33420899470899473
+ },
+ "violet__al1_6": {
+  "in": 15.358548850143654,
+  "auto": 16.736327350243897,
+  "auto#mode": "limiter, limiter knee 0.50",
+  "auto#flag": 0.18963681027966742
+ },
+ "violet__osal1": {
+  "in": 8.272499022596744,
+  "auto": 9.648214882267238,
+  "auto#mode": "limiter, limiter knee 0.50",
+  "auto#flag": 0.3286991685563114
+ },
+ "bigshot__al1_6": {
+  "in": 11.213503855224285,
+  "auto": 13.267817014433742,
+  "auto#mode": "limiter, limiter knee 0.50",
+  "auto#flag": 0.3538378472222222
+ },
+ "bigshot__osal1": {
+  "in": 5.565929242117357,
+  "auto": 6.67443736669977,
+  "auto#mode": "limiter, limiter knee 0.50",
+  "auto#flag": 0.37850069444444445
+ },
+ "knife__al1_6": {
+  "in": 14.000897003545415,
+  "auto": 15.375373254716468,
+  "auto#mode": "limiter, limiter knee 0.50",
+  "auto#flag": 0.2783138888888889
+ },
+ "knife__osal1": {
+  "in": 6.807105691481453,
+  "auto": 7.736876072777661,
+  "auto#mode": "limiter, limiter knee 0.50",
+  "auto#flag": 0.3517194444444444
+ }
+}

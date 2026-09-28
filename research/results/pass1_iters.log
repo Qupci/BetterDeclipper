@@ -1,0 +1,32 @@
+ex__hard6            it150: clip | it80: clip | it40: clip
+ex__tanh6            it150: none, soft knee 0.75 | it80: none, soft knee 0.75 | it40: none, soft knee 0.75
+ex__tanh9k4          it150: none, soft knee 0.65 | it80: none, soft knee 0.65 | it40: none, soft knee 0.65
+ex__cubic6           it150: clip, soft knee 0.50 | it80: clip, soft knee 0.50 | it40: clip, soft knee 0.50
+ex__softhard6        it150: clip, soft knee 0.73 | it80: clip, soft knee 0.73 | it40: clip, soft knee 0.75
+ex__softhard9        it150: clip, soft knee 0.80 | it80: clip, soft knee 0.80 | it40: clip, soft knee 0.80
+ex__mp3_128          it150: smeared, soft knee 0.85 | it80: smeared, soft knee 0.85 | it40: smeared
+ex__al1_6            it150: limiter, soft knee 0.50 | it80: limiter, soft knee 0.80 | it40: limiter, soft knee 0.83
+petal__hard6         it150: clip | it80: clip | it40: clip
+petal__tanh6         it150: smeared, soft knee 0.78 | it80: smeared, soft knee 0.78 | it40: smeared, soft knee 0.78
+petal__tanh9k4       it150: none, soft knee 0.73 | it80: none, soft knee 0.75 | it40: none, soft knee 0.75
+petal__cubic6        it150: clip, soft knee 0.68 | it80: clip, soft knee 0.70 | it40: clip, soft knee 0.73
+petal__softhard6     it150: clip, soft knee 0.75 | it80: clip, soft knee 0.75 | it40: clip, soft knee 0.75
+petal__softhard9     it150: clip, soft knee 0.83 | it80: clip, soft knee 0.83 | it40: clip, soft knee 0.83
+petal__mp3_128       it150: smeared, soft knee 0.88 | it80: smeared, soft knee 0.88 | it40: smeared, soft knee 0.88
+petal__al1_6         it150: limiter, soft knee 0.83 | it80: limiter, soft knee 0.83 | it40: limiter
+ruder__hard6         it150: clip | it80: clip | it40: clip
+ruder__tanh6         it150: none, soft knee 0.78 | it80: none, soft knee 0.78 | it40: none, soft knee 0.80
+ruder__tanh9k4       it150: none, soft knee 0.73 | it80: none, soft knee 0.75 | it40: none, soft knee 0.75
+ruder__cubic6        it150: clip, soft knee 0.75 | it80: clip, soft knee 0.78 | it40: clip, soft knee 0.78
+ruder__softhard6     it150: clip, soft knee 0.80 | it80: clip, soft knee 0.78 | it40: clip, soft knee 0.80
+ruder__softhard9     it150: clip, soft knee 0.80 | it80: clip, soft knee 0.83 | it40: clip, soft knee 0.83
+ruder__mp3_128       it150: smeared, soft knee 0.88 | it80: smeared, soft knee 0.88 | it40: smeared, soft knee 0.88
+ruder__al1_6         it150: limiter+smeared | it80: limiter+smeared | it40: limiter+smeared
+bigshot__hard6       it150: clip | it80: clip | it40: clip
+bigshot__tanh6       it150: none, soft knee 0.83 | it80: none, soft knee 0.83 | it40: none, soft knee 0.83
+bigshot__tanh9k4     it150: none, soft knee 0.50 | it80: none, soft knee 0.50 | it40: none, soft knee 0.80
+bigshot__cubic6      it150: clip, soft knee 0.80 | it80: clip, soft knee 0.78 | it40: clip, soft knee 0.80
+bigshot__softhard6   it150: clip, soft knee 0.85 | it80: clip, soft knee 0.85 | it40: clip, soft knee 0.83
+bigshot__softhard9   it150: clip, soft knee 0.83 | it80: clip, soft knee 0.83 | it40: clip
+bigshot__mp3_128     it150: smeared, soft knee 0.85 | it80: smeared, soft knee 0.85 | it40: smeared, soft knee 0.85
+bigshot__al1_6       it150: limiter | it80: limiter | it40: limiter

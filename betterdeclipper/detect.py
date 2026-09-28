@@ -139,3 +139,68 @@ def detect_knee(y, fit_range=(0.25, 0.5), excess=1.6, run=6, bins=200, peak_disc
             res.append(None if knee is None else sgn * knee)
         out.append(tuple(res))
     return out
+
+
+def _smear_model(par, u):
+    from scipy.special import log_ndtr
+    alpha, beta, theta, lsig, lM = par
+    sig = np.exp(lsig)
+    cont = np.exp(np.clip(alpha + beta * u + 0.5 * beta ** 2 * sig ** 2
+                          + log_ndtr((theta - u - beta * sig ** 2) / sig), -700, 700))
+    bump = np.exp(lM) * np.exp(-0.5 * ((u - theta) / sig) ** 2) / (sig * np.sqrt(2 * np.pi))
+    return cont + bump
+
+
+def fit_ceiling(s, lsb=1e-7, lo_frac=0.45, nbins=600, peak_discard=1e-5):
+    """Smeared-ceiling fit on the top of the amplitude histogram of one polarity (s: its positive samples).
+
+    Model: [natural density exp(alpha + beta a) truncated at theta + clipped mass M at theta], blurred by a
+    Gaussian of width sigma (dither, lossy-codec noise, resampling / oversampling ripple). Poisson ML on
+    histogram bins. Returns dict(theta, sigma, M, bump_ratio, peak) in amplitude units, or None.
+    bump_ratio = height of the clipped-mass bump over the natural density at theta (>> 1: clear ceiling)."""
+    from scipy.optimize import minimize
+    s = s[s > 0]
+    if s.size < 2000:
+        return None
+    k = int(np.floor(s.size * peak_discard))
+    peak = np.partition(s, s.size - 1 - k)[s.size - 1 - k] if k > 0 else s.max()
+    lo = lo_frac * peak
+    v = s[(s >= lo) & (s <= peak)]
+    bw = max((peak - lo) / nbins, lsb)
+    h, e = np.histogram(v, bins=np.arange(lo, peak + bw, bw))
+    un = 0.5 * (e[1:] + e[:-1]) / peak
+    bwn = bw / peak
+    hs = np.convolve(h, np.ones(5) / 5, "same")
+    sel = (un < 0.5 * (lo_frac + 1)) & (h > 0)
+    if sel.sum() > 5:
+        b0, a0 = np.polyfit(un[sel], np.log(h[sel] / bwn), 1)
+    else:
+        b0, a0 = 0.0, np.log(max(h.mean(), 1) / bwn)
+    trend = np.exp(a0 + b0 * un) * bwn
+    ld = np.gradient(np.log(np.maximum(hs, 0.5)))
+    cands = {float(un[np.argmax(hs / np.maximum(trend, 1e-9))]), float(un[np.argmin(ld[: len(ld) - 3])]), 1.0 - 2 * bwn}
+
+    def nll(p):
+        lam = np.maximum(_smear_model(p, un) * bwn, 1e-12)
+        return float(np.sum(lam - h * np.log(lam)))
+
+    bounds = [(None, None), (-200, 50), (lo_frac, 1.05), (np.log(max(bwn * 0.25, 1e-6)), np.log(0.2)),
+              (np.log(1e-3), np.log(s.size))]
+    starts = []
+    for th0 in cands:
+        for sg0 in (0.003, 0.01, 0.03):
+            exc = max(float(np.sum(np.maximum(h - trend, 0)[np.abs(un - th0) < 3 * sg0 + 2 * bwn])), 1.0)
+            x0 = np.array([a0, min(b0, 5.0), th0, np.log(sg0), np.log(exc)])
+            starts.append((nll(x0), x0))
+    best = None
+    for _, x0 in sorted(starts, key=lambda t: t[0])[:3]:   # optimize only the most promising starts
+        r = minimize(nll, x0, method="L-BFGS-B", bounds=bounds)
+        if best is None or r.fun < best[0]:
+            best = (r.fun, r.x)
+    alpha, beta, theta, lsig, lM = best[1]
+    sig = float(np.exp(lsig))
+    bg = np.exp(alpha + beta * theta)
+    M = float(np.exp(lM))
+    return dict(theta=float(theta * peak), sigma=sig * peak, M=M, peak=float(peak),
+                bump_ratio=float(M / max(bg * sig * np.sqrt(2 * np.pi), 1e-12)))
+

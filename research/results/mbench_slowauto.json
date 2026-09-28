@@ -1,0 +1,44 @@
+{
+ "ex__al1slow": {
+  "in": 7.9489206270152355,
+  "auto": 7.9489206270152355,
+  "auto#mode": "none",
+  "auto#flag": 0.0
+ },
+ "petal__al1slow": {
+  "in": 5.824407450528923,
+  "auto": 5.824440515271297,
+  "auto#mode": "limiter",
+  "auto#flag": 0.00047430083144368857
+ },
+ "ruder__al1slow": {
+  "in": 3.875190929482634,
+  "auto": 3.8752485751108385,
+  "auto#mode": "limiter",
+  "auto#flag": 0.0008968253968253968
+ },
+ "thrash__al1slow": {
+  "in": 5.0663198085727945,
+  "auto": 5.066334756574065,
+  "auto#mode": "limiter",
+  "auto#flag": 0.0004905517762660619
+ },
+ "violet__al1slow": {
+  "in": 4.328525719954691,
+  "auto": 4.3285794826975215,
+  "auto#mode": "limiter",
+  "auto#flag": 0.0007585034013605442
+ },
+ "bigshot__al1slow": {
+  "in": 2.0820499026477095,
+  "auto": 2.0820789105312834,
+  "auto#mode": "limiter",
+  "auto#flag": 0.0008090277777777778
+ },
+ "knife__al1slow": {
+  "in": 2.667272894331108,
+  "auto": 2.6672785249227093,
+  "auto#mode": "limiter",
+  "auto#flag": 0.0008677083333333333
+ }
+}

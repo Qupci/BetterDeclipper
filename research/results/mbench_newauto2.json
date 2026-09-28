@@ -1,0 +1,44 @@
+{
+ "ex__oshard6": {
+  "in": 25.402971171733242,
+  "auto": 39.655685364652456,
+  "auto#mode": "smeared",
+  "auto#flag": 0.01822833269493615
+ },
+ "petal__oshard6": {
+  "in": 21.89466756571461,
+  "auto": 32.309438611124435,
+  "auto#mode": "smeared",
+  "auto#flag": 0.016217309145880574
+ },
+ "ruder__oshard6": {
+  "in": 19.238049413961225,
+  "auto": 25.888686458848284,
+  "auto#mode": "limiter+smeared",
+  "auto#flag": 0.03076039304610733
+ },
+ "thrash__oshard6": {
+  "in": 20.514856868074745,
+  "auto": 34.39106167634879,
+  "auto#mode": "smeared",
+  "auto#flag": 0.02505139833711262
+ },
+ "violet__oshard6": {
+  "in": 19.807128692326575,
+  "auto": 26.89370131031074,
+  "auto#mode": "smeared",
+  "auto#flag": 0.02797845804988662
+ },
+ "bigshot__oshard6": {
+  "in": 15.336258162974696,
+  "auto": 21.898642088923207,
+  "auto#mode": "smeared",
+  "auto#flag": 0.11555069444444445
+ },
+ "knife__oshard6": {
+  "in": 18.488690179537777,
+  "auto": 25.677406879806224,
+  "auto#mode": "smeared",
+  "auto#flag": 0.054971875
+ }
+}

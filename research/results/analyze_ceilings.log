@@ -1,0 +1,73 @@
+ex__hard6.wav                  clip    th 0.4873 s/t 0.0002 fl 0.94 | clip    th 0.4873 s/t 0.0002 fl 0.92 | clip    th 0.4873 s/t 0.0003 fl 0.93 | clip    th 0.4873 s/t 0.0002 fl 0.93
+ex__hard9.wav                  clip    th 0.3449 s/t 0.0002 fl 0.97 | clip    th 0.3449 s/t 0.0002 fl 0.96 | clip    th 0.3449 s/t 0.0003 fl 0.97 | clip    th 0.3449 s/t 0.0002 fl 0.96
+ex__tanh6.wav                  none    th 0.4859 s/t 0.0000 fl 0.00 | none    th 0.4845 s/t 0.0000 fl 0.00 | none    th 0.4849 s/t 0.0000 fl 0.00 | none    th 0.4826 s/t 0.0000 fl 0.00
+ex__tanh9k4.wav                none    th 0.3445 s/t 0.0000 fl 0.00 | none    th 0.3441 s/t 0.0000 fl 0.00 | none    th 0.3442 s/t 0.0000 fl 0.00 | none    th 0.3435 s/t 0.0000 fl 0.00
+ex__cubic6.wav                 clip    th 0.4873 s/t 0.0000 fl 0.92 | clip    th 0.4873 s/t 0.0000 fl 0.89 | clip    th 0.4873 s/t 0.0000 fl 0.95 | none    th 0.4872 s/t 0.0000 fl 0.00
+ex__softhard6.wav              clip    th 0.4873 s/t 0.0002 fl 0.92 | clip    th 0.4873 s/t 0.0002 fl 0.93 | clip    th 0.4873 s/t 0.0003 fl 0.93 | clip    th 0.4873 s/t 0.0002 fl 0.93
+ex__softhard9.wav              clip    th 0.3449 s/t 0.0003 fl 0.97 | clip    th 0.3449 s/t 0.0004 fl 0.96 | clip    th 0.3449 s/t 0.0002 fl 0.96 | clip    th 0.3449 s/t 0.0003 fl 0.95
+ex__oshard6.wav                smeared th 0.4875 s/t 0.0017 fl 0.00 | smeared th 0.4875 s/t 0.0019 fl 0.00 | smeared th 0.4875 s/t 0.0015 fl 0.00 | smeared th 0.4875 s/t 0.0014 fl 0.00
+ex__resamp6.wav                smeared th 0.4875 s/t 0.0019 fl 0.00 | smeared th 0.4875 s/t 0.0019 fl 0.00 | smeared th 0.4875 s/t 0.0021 fl 0.00 | smeared th 0.4875 s/t 0.0017 fl 0.00
+ex__mp3_128.wav                smeared th 0.4639 s/t 0.0250 fl 0.00 | smeared th 0.4636 s/t 0.0237 fl 0.00 | smeared th 0.4629 s/t 0.0221 fl 0.00 | smeared th 0.4631 s/t 0.0238 fl 0.00
+ex__aac_256.wav                smeared th 0.4612 s/t 0.0086 fl 0.00 | smeared th 0.4611 s/t 0.0085 fl 0.00 | smeared th 0.4609 s/t 0.0101 fl 0.00 | smeared th 0.4611 s/t 0.0082 fl 0.00
+ex__vorbis_192.wav             smeared th 0.4907 s/t 0.0119 fl 0.00 | smeared th 0.4908 s/t 0.0113 fl 0.00 | smeared th 0.4907 s/t 0.0107 fl 0.00 | smeared th 0.4906 s/t 0.0110 fl 0.00
+ex__al1_6.wav                  limiter th 0.4873 s/t 0.0000 fl 0.04 | limiter th 0.4873 s/t 0.0000 fl 0.01 | limiter th 0.4873 s/t 0.0000 fl 0.04 | limiter th 0.4873 s/t 0.0005 fl 0.00
+ex__osal1.wav                  limiter th 0.2835 s/t 0.0010 fl 0.24 | limiter th 0.2835 s/t 0.0010 fl 0.00 | limiter th 0.2835 s/t 0.0010 fl 0.28 | limiter th 0.2835 s/t 0.0000 fl 0.00
+petal__hard6.wav               clip    th 0.4887 s/t 0.0004 fl 0.97 | clip    th 0.4887 s/t 0.0002 fl 0.97 | clip    th 0.4887 s/t 0.0004 fl 0.93 | clip    th 0.4887 s/t 0.0002 fl 0.92
+petal__hard9.wav               clip    th 0.3460 s/t 0.0002 fl 0.98 | clip    th 0.3460 s/t 0.0002 fl 0.98 | clip    th 0.3460 s/t 0.0002 fl 0.95 | clip    th 0.3460 s/t 0.0002 fl 0.95
+petal__tanh6.wav               none    th 0.4881 s/t 0.0000 fl 0.00 | none    th 0.4882 s/t 0.0000 fl 0.00 | smeared th 0.4861 s/t 0.0026 fl 0.00 | none    th 0.4851 s/t 0.0000 fl 0.00
+petal__tanh9k4.wav             none    th 0.3458 s/t 0.0000 fl 0.00 | none    th 0.3458 s/t 0.0000 fl 0.00 | none    th 0.3451 s/t 0.0000 fl 0.00 | none    th 0.3449 s/t 0.0000 fl 0.00
+petal__cubic6.wav              clip    th 0.4888 s/t 0.0010 fl 0.94 | clip    th 0.4888 s/t 0.0007 fl 0.93 | clip    th 0.4888 s/t 0.0009 fl 0.84 | clip    th 0.4888 s/t 0.0000 fl 0.82
+petal__softhard6.wav           clip    th 0.4888 s/t 0.0004 fl 0.97 | clip    th 0.4887 s/t 0.0003 fl 0.97 | clip    th 0.4888 s/t 0.0004 fl 0.93 | clip    th 0.4888 s/t 0.0003 fl 0.91
+petal__softhard9.wav           clip    th 0.3460 s/t 0.0002 fl 0.98 | clip    th 0.3460 s/t 0.0002 fl 0.98 | clip    th 0.3460 s/t 0.0002 fl 0.94 | clip    th 0.3460 s/t 0.0002 fl 0.94
+petal__oshard6.wav             limiter th 0.4898 s/t 0.0010 fl 0.00 | clip    th 0.4882 s/t 0.0010 fl 0.92 | limiter th 0.4898 s/t 0.0010 fl 0.00 | limiter th 0.4900 s/t 0.0010 fl 0.00
+petal__resamp6.wav             smeared th 0.4890 s/t 0.0020 fl 0.00 | smeared th 0.4890 s/t 0.0020 fl 0.00 | smeared th 0.4892 s/t 0.0037 fl 0.00 | smeared th 0.4891 s/t 0.0037 fl 0.00
+petal__mp3_128.wav             smeared th 0.4642 s/t 0.0326 fl 0.00 | smeared th 0.4644 s/t 0.0337 fl 0.00 | smeared th 0.4651 s/t 0.0385 fl 0.00 | smeared th 0.4648 s/t 0.0347 fl 0.00
+petal__aac_256.wav             smeared th 0.4595 s/t 0.0155 fl 0.00 | smeared th 0.4596 s/t 0.0197 fl 0.00 | smeared th 0.4599 s/t 0.0166 fl 0.00 | smeared th 0.4597 s/t 0.0241 fl 0.00
+petal__vorbis_192.wav          smeared th 0.4907 s/t 0.0199 fl 0.00 | smeared th 0.4907 s/t 0.0197 fl 0.00 | smeared th 0.4901 s/t 0.0218 fl 0.00 | smeared th 0.4902 s/t 0.0209 fl 0.00
+petal__al1_6.wav               limiter th 0.4888 s/t 0.0003 fl 0.10 | limiter th 0.4888 s/t 0.0008 fl 0.04 | limiter th 0.4888 s/t 0.0003 fl 0.06 | limiter th 0.4888 s/t 0.0007 fl 0.03
+petal__osal1.wav               limiter th 0.2789 s/t 0.0004 fl 0.28 | limiter th 0.2789 s/t 0.0010 fl 0.08 | limiter th 0.2789 s/t 0.0010 fl 0.13 | limiter th 0.2789 s/t 0.0010 fl 0.12
+ruder__hard6.wav               clip    th 0.4886 s/t 0.0002 fl 0.94 | clip    th 0.4886 s/t 0.0002 fl 0.91 | clip    th 0.4886 s/t 0.0002 fl 0.89 | clip    th 0.4886 s/t 0.0004 fl 0.90
+ruder__hard9.wav               clip    th 0.3459 s/t 0.0003 fl 0.96 | clip    th 0.3459 s/t 0.0002 fl 0.93 | clip    th 0.3459 s/t 0.0002 fl 0.92 | clip    th 0.3459 s/t 0.0002 fl 0.93
+ruder__tanh6.wav               none    th 0.4883 s/t 0.0000 fl 0.00 | none    th 0.4879 s/t 0.0000 fl 0.00 | none    th 0.4873 s/t 0.0000 fl 0.00 | none    th 0.4876 s/t 0.0000 fl 0.00
+ruder__tanh9k4.wav             none    th 0.3458 s/t 0.0000 fl 0.00 | none    th 0.3457 s/t 0.0000 fl 0.00 | none    th 0.3455 s/t 0.0000 fl 0.00 | none    th 0.3456 s/t 0.0000 fl 0.00
+ruder__cubic6.wav              clip    th 0.4886 s/t 0.0010 fl 0.90 | clip    th 0.4886 s/t 0.0010 fl 0.83 | clip    th 0.4886 s/t 0.0008 fl 0.77 | clip    th 0.4886 s/t 0.0007 fl 0.88
+ruder__softhard6.wav           clip    th 0.4886 s/t 0.0003 fl 0.93 | clip    th 0.4886 s/t 0.0002 fl 0.91 | clip    th 0.4886 s/t 0.0002 fl 0.87 | clip    th 0.4886 s/t 0.0004 fl 0.88
+ruder__softhard9.wav           clip    th 0.3459 s/t 0.0003 fl 0.96 | clip    th 0.3459 s/t 0.0003 fl 0.93 | clip    th 0.3459 s/t 0.0003 fl 0.92 | clip    th 0.3459 s/t 0.0003 fl 0.92
+ruder__oshard6.wav             smeared th 0.4889 s/t 0.0026 fl 0.00 | limiter th 0.4904 s/t 0.0010 fl 0.00 | smeared th 0.4891 s/t 0.0035 fl 0.00 | smeared th 0.4890 s/t 0.0032 fl 0.00
+ruder__resamp6.wav             smeared th 0.4890 s/t 0.0038 fl 0.00 | smeared th 0.4890 s/t 0.0045 fl 0.00 | smeared th 0.4892 s/t 0.0054 fl 0.00 | smeared th 0.4891 s/t 0.0046 fl 0.00
+ruder__mp3_128.wav             smeared th 0.4644 s/t 0.0408 fl 0.00 | smeared th 0.4641 s/t 0.0447 fl 0.00 | smeared th 0.4650 s/t 0.0420 fl 0.00 | smeared th 0.4654 s/t 0.0448 fl 0.00
+ruder__aac_256.wav             smeared th 0.4592 s/t 0.0208 fl 0.00 | smeared th 0.4584 s/t 0.0210 fl 0.00 | smeared th 0.4584 s/t 0.0201 fl 0.00 | smeared th 0.4589 s/t 0.0217 fl 0.00
+ruder__vorbis_192.wav          smeared th 0.4892 s/t 0.0283 fl 0.00 | smeared th 0.4888 s/t 0.0279 fl 0.00 | smeared th 0.4891 s/t 0.0276 fl 0.00 | smeared th 0.4886 s/t 0.0296 fl 0.00
+ruder__al1_6.wav               smeared th 0.4894 s/t 0.0049 fl 0.00 | smeared th 0.4893 s/t 0.0143 fl 0.00 | limiter th 0.4886 s/t 0.0010 fl 0.03 | limiter th 0.4886 s/t 0.0010 fl 0.05
+ruder__osal1.wav               smeared th 0.2823 s/t 0.0062 fl 0.00 | smeared th 0.2822 s/t 0.0157 fl 0.00 | limiter th 0.2823 s/t 0.0010 fl 0.14 | limiter th 0.2823 s/t 0.0010 fl 0.17
+bigshot__hard6.wav             clip    th 0.4871 s/t 0.0004 fl 0.94 | clip    th 0.4871 s/t 0.0002 fl 0.93 | clip    th 0.4871 s/t 0.0003 fl 0.94 | clip    th 0.4871 s/t 0.0002 fl 0.92
+bigshot__hard9.wav             clip    th 0.3448 s/t 0.0002 fl 0.96 | clip    th 0.3448 s/t 0.0002 fl 0.95 | clip    th 0.3448 s/t 0.0002 fl 0.95 | clip    th 0.3448 s/t 0.0002 fl 0.95
+bigshot__tanh6.wav             none    th 0.4867 s/t 0.0000 fl 0.00 | none    th 0.4867 s/t 0.0000 fl 0.00 | none    th 0.4867 s/t 0.0000 fl 0.00 | none    th 0.4867 s/t 0.0000 fl 0.00
+bigshot__tanh9k4.wav           none    th 0.3447 s/t 0.0000 fl 0.00 | none    th 0.3447 s/t 0.0000 fl 0.00 | none    th 0.3447 s/t 0.0000 fl 0.00 | none    th 0.3447 s/t 0.0000 fl 0.00
+bigshot__cubic6.wav            clip    th 0.4870 s/t 0.0010 fl 0.88 | clip    th 0.4871 s/t 0.0010 fl 0.86 | clip    th 0.4871 s/t 0.0010 fl 0.87 | clip    th 0.4871 s/t 0.0010 fl 0.83
+bigshot__softhard6.wav         clip    th 0.4871 s/t 0.0002 fl 0.93 | clip    th 0.4871 s/t 0.0004 fl 0.92 | clip    th 0.4871 s/t 0.0002 fl 0.93 | clip    th 0.4871 s/t 0.0004 fl 0.91
+bigshot__softhard9.wav         clip    th 0.3448 s/t 0.0004 fl 0.95 | clip    th 0.3448 s/t 0.0004 fl 0.95 | clip    th 0.3448 s/t 0.0002 fl 0.95 | clip    th 0.3448 s/t 0.0003 fl 0.94
+bigshot__oshard6.wav           smeared th 0.4875 s/t 0.0029 fl 0.00 | smeared th 0.4874 s/t 0.0034 fl 0.00 | smeared th 0.4874 s/t 0.0032 fl 0.00 | smeared th 0.4874 s/t 0.0035 fl 0.00
+bigshot__resamp6.wav           clip    th 0.4871 s/t 0.0004 fl 0.94 | clip    th 0.4871 s/t 0.0002 fl 0.93 | clip    th 0.4871 s/t 0.0003 fl 0.94 | clip    th 0.4871 s/t 0.0002 fl 0.92
+bigshot__mp3_128.wav           smeared th 0.4629 s/t 0.0473 fl 0.00 | smeared th 0.4629 s/t 0.0478 fl 0.00 | smeared th 0.4625 s/t 0.0472 fl 0.00 | smeared th 0.4627 s/t 0.0477 fl 0.00
+bigshot__aac_256.wav           smeared th 0.4592 s/t 0.0228 fl 0.00 | smeared th 0.4587 s/t 0.0232 fl 0.00 | smeared th 0.4580 s/t 0.0222 fl 0.00 | smeared th 0.4575 s/t 0.0226 fl 0.00
+bigshot__vorbis_192.wav        smeared th 0.4902 s/t 0.0268 fl 0.00 | smeared th 0.4894 s/t 0.0283 fl 0.00 | smeared th 0.4900 s/t 0.0268 fl 0.00 | smeared th 0.4897 s/t 0.0280 fl 0.00
+bigshot__al1_6.wav             limiter th 0.4871 s/t 0.0009 fl 0.04 | limiter th 0.4871 s/t 0.0003 fl 0.01 | limiter th 0.4871 s/t 0.0010 fl 0.05 | limiter th 0.4871 s/t 0.0003 fl 0.00
+bigshot__osal1.wav             limiter th 0.2824 s/t 0.0000 fl 0.12 | limiter th 0.2825 s/t 0.0000 fl 0.08 | limiter th 0.2825 s/t 0.0000 fl 0.11 | limiter th 0.2825 s/t 0.0000 fl 0.07
+ex__hard6__gt.wav              none    th 0.8402 s/t 0.0000 fl 0.00 | none    th 0.7723 s/t 0.0000 fl 0.00 | none    th 0.7875 s/t 0.0000 fl 0.00 | none    th 0.7220 s/t 0.0000 fl 0.00
+petal__hard6__gt.wav           none    th 0.9113 s/t 0.0000 fl 0.00 | none    th 0.9170 s/t 0.0000 fl 0.00 | smeared th 0.7058 s/t 0.0960 fl 0.00 | none    th 0.7488 s/t 0.0000 fl 0.00
+ruder__hard6__gt.wav           none    th 0.9666 s/t 0.0000 fl 0.00 | none    th 0.9036 s/t 0.0000 fl 0.00 | none    th 0.8496 s/t 0.0000 fl 0.00 | none    th 0.8723 s/t 0.0000 fl 0.00
+bigshot__hard6__gt.wav         none    th 0.9453 s/t 0.0000 fl 0.00 | none    th 0.9442 s/t 0.0000 fl 0.00 | none    th 0.9478 s/t 0.0000 fl 0.00 | none    th 0.9463 s/t 0.0000 fl 0.00
+17_Rome_Search.wav             clip    th 0.9878 s/t 0.0004 fl 0.99 | clip    th 0.9880 s/t 0.0004 fl 0.99 | clip    th 0.9881 s/t 0.0004 fl 0.98 | clip    th 0.9880 s/t 0.0004 fl 0.98
+tarzan taz normal LOOP.wav     clip    th 0.7940 s/t 0.0000 fl 0.93 | clip    th 0.7940 s/t 0.0000 fl 0.90 | clip    th 0.7939 s/t 0.0000 fl 0.93 | clip    th 0.7941 s/t 0.0000 fl 0.88
+All Is Fair In Love And Broste limiter th 0.9994 s/t 0.0006 fl 0.07 | limiter th 0.9994 s/t 0.0006 fl 0.07 | limiter th 0.9994 s/t 0.0006 fl 0.07 | limiter th 0.9994 s/t 0.0005 fl 0.07
+Bangarang.flac                 limiter th 1.0000 s/t 0.0007 fl 0.00 | limiter th 1.0000 s/t 0.0007 fl 0.00 | limiter th 1.0000 s/t 0.0007 fl 0.00 | limiter th 1.0000 s/t 0.0007 fl 0.00
+Goin' In (Skrillex Goin Down R limiter th 0.6308 s/t 0.0003 fl 0.00 | limiter th 0.6308 s/t 0.0002 fl 0.00 | limiter th 0.6308 s/t 0.0003 fl 0.00 | limiter th 0.6308 s/t 0.0003 fl 0.00
+Goin' In (Skrillex Goin Hard R limiter th 0.6093 s/t 0.0008 fl 0.00 | limiter th 0.6093 s/t 0.0007 fl 0.00 | limiter th 0.6093 s/t 0.0007 fl 0.00 | limiter th 0.6093 s/t 0.0007 fl 0.00
+Purple Lamborghini.wav         limiter th 0.9998 s/t 0.0008 fl 0.01 | limiter th 0.9998 s/t 0.0002 fl 0.00 | limiter th 0.9998 s/t 0.0007 fl 0.00 | limiter th 0.9998 s/t 0.0004 fl 0.00
+OWSLA 3.wav                    smeared th 0.9629 s/t 0.0592 fl 0.00 | smeared th 1.0437 s/t 0.0297 fl 0.00 | smeared th 1.0198 s/t 0.0425 fl 0.00 | smeared th 1.0325 s/t 0.0335 fl 0.00
+Mothership Teaser.wav          smeared th 0.9946 s/t 0.0276 fl 0.00 | smeared th 0.9925 s/t 0.0286 fl 0.00 | smeared th 0.9934 s/t 0.0277 fl 0.00 | smeared th 0.9912 s/t 0.0276 fl 0.00
+signal (dan sena remix).wav    none    th 1.4764 s/t 0.0000 fl 0.00 | none    th 1.4951 s/t 0.0000 fl 0.00
+17 - Petal Dance -6dB AL-1.wav limiter th 0.4954 s/t 0.0010 fl 0.30 | limiter th 0.4954 s/t 0.0010 fl 0.26 | limiter th 0.4973 s/t 0.0010 fl 0.00 | limiter th 0.4964 s/t 0.0010 fl 0.00
+17 - Petal Dance -6dB HARD.wav clip    th 0.5012 s/t 0.0003 fl 0.96 | clip    th 0.5012 s/t 0.0003 fl 0.97 | clip    th 0.5012 s/t 0.0003 fl 0.90 | clip    th 0.5012 s/t 0.0003 fl 0.91
+sample_-12dB_clipped.wav       clip    th 0.2499 s/t 0.0002 fl 0.98 | clip    th 0.2499 s/t 0.0003 fl 0.98 | clip    th 0.2499 s/t 0.0002 fl 0.98 | clip    th 0.2499 s/t 0.0003 fl 0.97

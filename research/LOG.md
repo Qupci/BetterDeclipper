@@ -139,3 +139,96 @@ best (2x iterations): 25.37 dB, clipped-samples 23.94 dB, 387 s
   | normal | 142 s | 6.6 s  | 49.7 s |
   | high   | 181 s | 8.9 s  | 71.9 s |
   | best   | 313 s | 13.6 s | - |
+
+## Session 4: mastered material (ex_master, 2026-09-28)
+### User examples - signatures (research/master/analyze_inputs.py, plots/master_hist.png, flat_runs.py)
+- soft_works (Rome Search, Tarzan): hard plateau (flat runs up to 50-150 samples) PLUS a soft shoulder
+  below it (density rises from ~0.9 / ~0.7 x peak). Old auto saw the plateau -> hard -> shoulder untouched.
+- bad (Bangarang, Goin' In x2, Purple Lamborghini, All Is Fair): spike at the ceiling but ceiling samples
+  are isolated touches (flat-run fraction 0-8 %, no flat runs at any level) -> brickwall limiter last.
+- weird (OWSLA 3 aac 264k, Mothership vorbis 192k, signal mp3 128k mono): plateau smeared by the codec,
+  overshoots up to +1..+4.9 dBFS; old detection found nothing -> passthrough. signal has passages far above
+  the ceiling that are smooth (EQ/filtering after clipping) -> no single ceiling.
+- AL-1 (Naturl Audio limiter, hosted with pedalboard; default settings + ceiling -6 dB, detector Slow
+  reproduce the user's render at 39 dB): look-ahead limiter, V-shaped gain dips of ~+-3 ms around each
+  peak (0.5-0.6 at the peak). 96 % of the error energy within 1 ms of a ceiling touch (ex/petal), but half
+  of it on samples below 0.8 x peak -> a level knee cannot isolate it. Dense material (Ruder Buster) also
+  has slower gain riding (dynamics). Old auto: petal -6 dB AL-1 18.96 -> 18.98 dB (soft 19.66).
+### Master benchmark (research/master/degrade.py, make_bench.py; research/outputs/mbench)
+7 unclipped 30 s sources (ex GT, Deltarune: Petal Dance, Ruder Buster, Thrash Machine, Violet Tactics
+@44.1k; BIG SHOT, Black Knife @48k) x 14 degradations: hard -6/-9, tanh soft clip (knee 0.6/0.4),
+cubic soft clip, soft shoulder + hard ceiling (-6/-9), 4x oversampled hard clip, hard clip + resample
+44.1->48k, hard clip + mp3 128k / aac 256k / vorbis 192k, AL-1 -6, 4x-OS clip -4 dB + AL-1 -7.
+Fast preset, baseline sweep (mbench_base.json): old auto only wins on plain hard clipping; best fixed
+soft knee (x peak) varies 0.5 (cubic) .. 0.9 (oversampled/resampled) -> must be estimated per file.
+### Constraint family (auto.py)
+flag |y| >= knee; restoration must satisfy |x| >= min(|y|, theta) (same sign). hard: knee = theta;
+soft: knee < theta; smeared ceiling: knee = theta - c*sigma. Tolerance below |y| hurts (always best 0).
+### Smeared-ceiling fit (detect.fit_ceiling)
+histogram model [exp-linear natural density truncated at theta + clipped mass M at theta] * N(0, sigma^2),
+Poisson ML. Recovers theta within 0.1-0.3 % (OS clip, resampling), ~1 % (vorbis); mp3/aac plateaus sit
+~5 % below the original clip level. sigma/theta: dither 2-4e-4, OS/resampling 1.5-5e-3, codecs 0.008-0.06.
+smear:c1 sweep (knee theta - c1 sigma, mbench_smear.json): c1 = 4-8 best everywhere, tolerance 0 best.
+e.g. ex: oshard 25.40 -> 40.13 (hard-clip reference 40.87), resamp 39.31, mp3 23.23, aac 25.47, vorbis 31.19.
+### Ceiling classification (auto.analyze_ceilings)
+sharp ceiling + flat-run fraction >= 0.5 -> clip; sharp + isolated touches -> limiter; sigma/theta in
+[1e-3, 0.07] with overshoot > 1.5 sigma -> smeared; else none. Correct on the benchmark (3/224 borderline
+channel decisions) and on all user files; unclipped sources -> none.
+### Soft-shoulder knee
+- histogram quantile matching (compress_est.py): useless, natural-tail extrapolation errors of 20-170 %.
+- histogram pile-up vs log-linear trend (shoulder_feat.py): misses mild shoulders (softhard6, tanh6, cubic).
+- level-dependent gain cap (envelope, gcap per sample): makes a too-low knee much less harmful
+  (hard6 @ knee 0.5: 23.8 -> 32.3 dB) but no single cap setting fits all curves -> not adopted.
+- first-pass "raise curve": restore with knee 0.4 theta, median lift |x|/|y| - 1 per level. Uncompressed
+  flagged samples are lifted by a level-dependent bias (5-14 % near the top, source dependent) but the
+  curve only ACCELERATES towards the ceiling when there is real compression (0.8->0.95 increase: hard6
+  -1.7..+0.6, OS clip -0.6..+0.7, softhard +2.8..+5.7, tanh6 +13..+17 points).
+### Clicks in normal+ (research/fusion)
+Per-band error on the example: normal beats fast below 1.5 kHz (0-150 Hz: -30.66 vs -28.20 dB) but is
+worse above 8 kHz; SPADE alone has 887 HF error bursts (> 3x fast) and +4.5 dB error above 16 kHz (it adds
+HF that is not in the source): jagged spikes inside long clipped gaps (plots/spade_clicks.png).
+Two-band fusion (SPADE only below fc): ex 25.211 -> 25.226 (fc 4k) / 25.241 (8k); fast-HF + normal-LF
+25.250 (8k). Frequency-weighted SPADE sparsity: SPADE alone worse (22.61 -> 22.16), fusion +0.04 only.
+- knee rule chosen offline from the saved curves (eval_knee_rules.py): knee where the slope of the
+  smoothed lift curve has risen by 10 % of its total rise above its minimum ("convexity onset"); no knee
+  if the top slope exceeds the minimum by < 0.1/unit (ceiling found) or < 0.45/unit (no ceiling: an
+  unclipped source reached 0.31, tanh >= 1.16). Knee >= 0.5. Mean distance to the best fixed knee on
+  soft-type cases 0.3-1.0 dB; never fires on hard / OS / resampled clipping (accel <= 0.03).
+  First pass on long files: loudest 6 x 10 s only.
+- classification refinement: near-ceiling runs >= 4 samples (long) + flatness of in-run steps
+  (<= 3 LSB / 1e-4 x level): long+flat = clip, long+rippled = smeared (OS clip), short = limiter.
+  Fixed petal OS clip (clip+limiter 23.35 -> smeared 32.31 dB).
+### Limiters (AL-1 cases, research/al1)
+- gain shape around touches: V-shaped dips over ~+-3 ms, 0.5-0.6 at the peak (plots/al1_gain_shape.png).
+- oracle per-event dip depth (triangular, tau 3 ms): petal 17.93 -> 28.48, ex 21.08 -> 26.61,
+  bigshot 11.21 -> 19.92, petal OS+AL-1 8.77 -> 19.39 dB -> the model is expressive enough.
+- blind: dip projector in the PnP loop (DipProj, one depth per event fitted to the NMF-Wiener output):
+  only +0.1..+1.3 dB (NMF prior at 93 ms does not see 6 ms dips); proximity mask (|x| >= |y| within
+  +-tau of touches): mean 16.55 (al1_6); plain level knee 0.5 x ceiling: 16.67 (input 15.08, all 7
+  cases improved) -> limiter default knee 0.5. Slow limiter (AL-1 Gen 1 continuous, release 123 ms):
+  every strategy +-0.02 dB -> the low knee does no harm when there is only gain riding.
+### Two-band fusion validation (22 hard-clip cases: 48 kHz test set + mbench hard6/hard9)
+normal (SPADE 0.35 below fc, 0 above): fc 3k +0.081, 4k +0.072, 6k +0.054, 8k +0.040 dB mean;
+high (HF = NMF only): 4k +0.128 (min +0.011, never worse), 6k +0.088, 8k +0.061 -> fc = 4 kHz.
+Example: normal 25.23, high 25.39, best 25.47 dB; HF error bursts vs fast: normal 17 -> 1, high/best 0;
+error above 16 kHz normal -2.24 -> -4.28 dB.
+### Final new auto (mbench_final.json, fast preset, 7 sources each)
+| degradation | input | old auto | new auto | best fixed |
+|---|---|---|---|---|
+| hard6 / hard9 | 20.10 / 13.12 | 30.11 / 22.77 | 30.11 / 22.77 | 30.39 / 22.95 |
+| softhard6 / softhard9 | 19.90 / 13.10 | 24.80 / 20.16 | 27.25 / 21.84 | 27.82 / 22.13 |
+| tanh6 / tanh9k4 | 19.00 / 12.22 | 19.53 / 13.83 | 26.42 / 19.28 | 26.45 / 19.56 |
+| cubic6 | 17.48 | 17.75 | 21.77 | 22.35 |
+| oshard6 / resamp6 | 20.10 / 20.10 | 20.31 / 22.12 | 29.66 / 29.95 | 30.11 / 30.04 |
+| mp3 / aac / vorbis | 16.72 / 17.57 / 19.43 | 17.08 / 19.35 / 21.45 | 19.71 / 21.75 / 24.83 | 19.90 / 22.15 / 24.92 |
+| al1_6 / osal1 / al1slow | 15.08 / 7.56 / 4.54 | 15.09 / 7.57 / 4.54 | 16.64 / 8.79 / 4.56 | 17.01 / 9.62 / 4.56 |
+| all 105 | 15.73 | 18.43 | 21.69 | 22.00 |
+Never worse than the old auto on any case; unclipped sources untouched (6/7 bit-exact, 1 at 57 dB).
+First pass: 80 NMF iterations give the same knees as 150 (40 flips some) -> 80.
+Limiter cap: +9 dB above the observed value / ceiling under limiter ceilings (Purple Lamborghini has
+deliberately square-clipped sub-bass under a limiter that was otherwise "restored" to +17.6 dBFS);
+no change on the AL-1 benchmark (16.64 / 8.79).
+User files (normal preset, research/outputs/master_demo): Rome clip+knee 0.88, Tarzan clip+knee 0.75,
+All Is Fair / Bangarang / Goin' In x2 / Purple limiter (knee 0.5, ~20 % flagged), OWSLA smeared+knee 0.50,
+Mothership smeared (3.3 %), signal none (no consistent ceiling), Petal AL-1 18.96 -> 20.23 dB,
+Petal HARD 23.30 -> 34.19 dB (vs source).

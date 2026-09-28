@@ -21,7 +21,7 @@ torch.set_flush_denormal(True)  # denormals are very slow on older x86 CPUs
 import torch.nn.functional as Fnn
 
 from ..stft import TightSTFT
-from .common import make_bounds, pad_bounds, Box, threshold_scale, ChannelMix
+from .common import make_bounds, pad_bounds, Box, threshold_scale, ChannelMix, DipProj
 from .social import _neigh_kernel, channel_mixing
 
 
@@ -163,7 +163,7 @@ def declip_pnp(y, m_hi, m_lo, th_hi, th_lo, sr=44100, win_len=4096, hop=1024, ne
                chan_gain=None, fweight=None, pilot=None, pilot_mix=0.0, gain_mode="pew", relax=1.0,
                device="cpu", dtype=torch.float32, callback=None, x_init=None, lam_ref=None,
                den_type="pew", nmf_rank=32, nmf_iter=2, nmf_beta=1.0, nmf_smooth=0.0, nmf_rank_ratio=None,
-               max_gain=None):
+               max_gain=None, dips=None):
     T, C = y.shape
     scale = threshold_scale(th_hi, th_lo)
     lb, ub = make_bounds(y / scale, m_hi, m_lo, th_hi / scale, th_lo / scale, max_gain)
@@ -180,6 +180,13 @@ def declip_pnp(y, m_hi, m_lo, th_hi, th_lo, sr=44100, win_len=4096, hop=1024, ne
         ub = np.concatenate([ub, np.full((C, extra), np.inf)], 1)
         Tp += extra
     proj = Box(lb, ub, device, dtype)
+    if dips is not None:  # limiter restoration: (idx (T, C) event ids or -1, v (T, C) dip shape, n_events, bmax)
+        didx, dv, n_ev, bmax = dips
+        ip = np.full((C, Tp), -1, dtype=np.int64); ip[:, left:left + T] = didx.T
+        vp = np.zeros((C, Tp)); vp[:, left:left + T] = dv.T
+        yp = np.zeros((C, Tp)); yp[:, left:left + T] = y.T / scale
+        proj = DipProj(proj, torch.as_tensor(yp, dtype=dtype, device=device), torch.as_tensor(ip, device=device),
+                       torch.as_tensor(vp, dtype=dtype, device=device), n_ev, bmax)
     cm = ChannelMix(channel_mixing(y, stereo))
     mix, unmix = cm.mix, cm.unmix
 

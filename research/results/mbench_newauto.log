@@ -1,0 +1,98 @@
+ex__hard6                in  25.40 | auto 40.87 [clip] 1.7% 10s
+ex__hard9                in  15.91 | auto 30.83 [clip] 11.0% 9s
+ex__tanh6                in  23.32 | auto 33.91 [none, soft knee 0.75] 8.5% 5s
+ex__tanh9k4              in  14.32 | auto 24.93 [none, soft knee 0.65] 31.3% 7s
+ex__cubic6               in  20.17 | auto 26.47 [clip, soft knee 0.50] 26.0% 6s
+ex__softhard6            in  24.92 | auto 33.88 [clip, soft knee 0.73] 9.9% 10s
+ex__softhard9            in  15.87 | auto 28.22 [clip, soft knee 0.80] 21.5% 9s
+ex__oshard6              in  25.40 | auto 39.66 [smeared] 1.8% 7s
+ex__resamp6              in  25.40 | auto 38.92 [smeared] 1.8% 9s
+ex__mp3_128              in  20.58 | auto 23.14 [smeared, soft knee 0.85] 4.7% 6s
+ex__aac_256              in  21.72 | auto 25.39 [smeared] 2.5% 9s
+ex__vorbis_192           in  24.76 | auto 31.17 [smeared] 2.7% 7s
+ex__al1_6                in  21.08 | auto 22.78 [limiter, soft knee 0.48] 30.2% 7s
+ex__osal1                in   9.35 | auto 11.67 [limiter, soft knee 0.48] 46.3% 8s
+petal__hard6             in  21.89 | auto 33.02 [clip] 1.6% 10s
+petal__hard9             in  14.62 | auto 24.16 [clip] 7.0% 11s
+petal__tanh6             in  20.73 | auto 28.32 [smeared, soft knee 0.78] 4.9% 11s
+petal__tanh9k4           in  13.57 | auto 20.69 [none, soft knee 0.73] 15.1% 9s
+petal__cubic6            in  18.95 | auto 22.83 [clip, soft knee 0.68] 6.2% 10s
+petal__softhard6         in  21.69 | auto 29.05 [clip, soft knee 0.75] 5.7% 11s
+petal__softhard9         in  14.59 | auto 23.82 [clip, soft knee 0.83] 12.2% 13s
+petal__oshard6           in  21.89 | auto 23.35 [clip+limiter] 0.7% 11s
+petal__resamp6           in  21.89 | auto 32.83 [smeared] 1.7% 14s
+petal__mp3_128           in  18.06 | auto 20.84 [smeared, soft knee 0.88] 4.7% 10s
+petal__aac_256           in  19.13 | auto 23.36 [smeared, soft knee 0.90] 3.0% 12s
+petal__vorbis_192        in  20.80 | auto 25.51 [smeared, soft knee 0.88] 3.1% 8s
+petal__al1_6             in  17.93 | auto 18.50 [limiter, soft knee 0.83] 2.8% 11s
+petal__osal1             in   8.77 | auto 9.22 [limiter, soft knee 0.83] 9.2% 10s
+ruder__hard6             in  19.23 | auto 28.10 [clip] 3.2% 11s
+ruder__hard9             in  12.79 | auto 21.78 [clip] 11.4% 13s
+ruder__tanh6             in  18.35 | auto 25.20 [none, soft knee 0.78] 8.2% 10s
+ruder__tanh9k4           in  12.00 | auto 18.60 [none, soft knee 0.73] 21.7% 9s
+ruder__cubic6            in  17.13 | auto 20.68 [clip, soft knee 0.75] 6.6% 10s
+ruder__softhard6         in  19.10 | auto 26.35 [clip, soft knee 0.80] 7.5% 13s
+ruder__softhard9         in  12.77 | auto 20.72 [clip, soft knee 0.80] 19.6% 13s
+ruder__oshard6           in  19.24 | auto 25.89 [limiter+smeared] 3.1% 10s
+ruder__resamp6           in  19.23 | auto 28.26 [smeared] 3.6% 11s
+ruder__mp3_128           in  16.39 | auto 19.58 [smeared, soft knee 0.88] 9.7% 11s
+ruder__aac_256           in  16.93 | auto 20.95 [smeared, soft knee 0.90] 5.5% 10s
+ruder__vorbis_192        in  18.19 | auto 22.51 [smeared, soft knee 0.88] 6.8% 10s
+ruder__al1_6             in   9.50 | auto 9.51 [limiter+smeared] 0.9% 13s
+ruder__osal1             in   6.30 | auto 6.59 [limiter+smeared, soft knee 0.83] 9.3% 10s
+thrash__hard6            in  20.51 | auto 33.64 [clip] 2.5% 11s
+thrash__hard9            in  13.53 | auto 27.45 [clip] 9.6% 13s
+thrash__tanh6            in  19.45 | auto 30.27 [none, soft knee 0.75] 7.8% 9s
+thrash__tanh9k4          in  12.62 | auto 23.18 [smeared, soft knee 0.68] 22.7% 10s
+thrash__cubic6           in  17.94 | auto 24.90 [clip, soft knee 0.50] 20.5% 11s
+thrash__softhard6        in  20.33 | auto 30.93 [clip, soft knee 0.75] 7.8% 12s
+thrash__softhard9        in  13.51 | auto 25.84 [clip, soft knee 0.80] 17.1% 13s
+thrash__oshard6          in  20.51 | auto 22.85 [limiter+smeared] 1.4% 10s
+thrash__resamp6          in  20.51 | auto 34.62 [smeared] 2.6% 14s
+thrash__mp3_128          in  18.08 | auto 23.14 [smeared, soft knee 0.88] 5.5% 10s
+thrash__aac_256          in  18.38 | auto 24.20 [smeared] 3.5% 11s
+thrash__vorbis_192       in  20.28 | auto 28.77 [smeared, soft knee 0.90] 4.0% 9s
+thrash__al1_6            in  16.46 | auto 17.13 [limiter, soft knee 0.78] 5.3% 10s
+thrash__osal1            in   7.86 | auto 8.22 [limiter, soft knee 0.83] 9.6% 11s
+violet__hard6            in  19.82 | auto 27.17 [clip] 2.5% 12s
+violet__hard9            in  13.24 | auto 20.35 [clip] 9.0% 10s
+violet__tanh6            in  18.89 | auto 24.44 [none, soft knee 0.78] 6.4% 12s
+violet__tanh9k4          in  12.41 | auto 17.93 [none, soft knee 0.75] 16.0% 7s
+violet__cubic6           in  17.59 | auto 21.10 [clip, soft knee 0.70] 7.0% 7s
+violet__softhard6        in  19.67 | auto 25.40 [clip, soft knee 0.78] 6.6% 8s
+violet__softhard9        in  13.22 | auto 19.98 [clip, soft knee 0.83] 14.7% 9s
+violet__oshard6          in  19.81 | auto 26.89 [smeared] 2.8% 11s
+violet__resamp6          in  19.82 | auto 27.01 [smeared] 3.0% 11s
+violet__mp3_128          in  15.81 | auto 17.85 [smeared, soft knee 0.85] 10.4% 10s
+violet__aac_256          in  17.22 | auto 20.85 [smeared, soft knee 0.90] 4.6% 9s
+violet__vorbis_192       in  18.70 | auto 22.40 [smeared, soft knee 0.88] 5.0% 12s
+violet__al1_6            in  15.36 | auto 15.37 [limiter] 0.3% 11s
+violet__osal1            in   8.27 | auto 8.72 [limiter, soft knee 0.83] 9.2% 10s
+bigshot__hard6           in  15.34 | auto 21.99 [clip] 11.1% 14s
+bigshot__hard9           in   9.75 | auto 16.06 [clip] 25.4% 12s
+bigshot__tanh6           in  14.71 | auto 20.00 [none, soft knee 0.83] 17.2% 14s
+bigshot__tanh9k4         in   9.33 | auto 14.35 [none, soft knee 0.50] 54.8% 12s
+bigshot__cubic6          in  14.12 | auto 17.23 [clip, soft knee 0.80] 14.5% 14s
+bigshot__softhard6       in  15.26 | auto 21.23 [clip, soft knee 0.85] 16.5% 14s
+bigshot__softhard9       in   9.75 | auto 16.20 [clip, soft knee 0.83] 33.8% 14s
+bigshot__oshard6         in  15.34 | auto 21.90 [smeared] 11.6% 13s
+bigshot__resamp6         in  15.34 | auto 21.99 [clip] 11.1% 11s
+bigshot__mp3_128         in  13.56 | auto 17.60 [smeared, soft knee 0.85] 25.0% 13s
+bigshot__aac_256         in  13.79 | auto 18.16 [smeared, soft knee 0.90] 16.5% 12s
+bigshot__vorbis_192      in  15.08 | auto 20.00 [smeared, soft knee 0.88] 18.0% 12s
+bigshot__al1_6           in  11.21 | auto 11.22 [limiter] 0.4% 12s
+bigshot__osal1           in   5.57 | auto 5.85 [limiter, soft knee 0.90] 8.4% 11s
+knife__hard6             in  18.48 | auto 26.01 [clip] 5.1% 14s
+knife__hard9             in  11.98 | auto 18.78 [clip] 16.3% 13s
+knife__tanh6             in  17.57 | auto 22.80 [none, soft knee 0.80] 10.8% 13s
+knife__tanh9k4           in  11.26 | auto 15.27 [none, soft knee 0.50] 48.1% 13s
+knife__cubic6            in  16.44 | auto 19.17 [clip, soft knee 0.78] 8.7% 11s
+knife__softhard6         in  18.34 | auto 23.92 [clip, soft knee 0.80] 11.2% 13s
+knife__softhard9         in  11.96 | auto 18.06 [clip, soft knee 0.80] 26.1% 14s
+knife__oshard6           in  18.49 | auto 25.68 [smeared] 5.5% 14s
+knife__resamp6           in  18.48 | auto 26.01 [clip] 5.1% 13s
+knife__mp3_128           in  14.60 | auto 15.80 [smeared] 13.0% 11s
+knife__aac_256           in  15.83 | auto 19.36 [smeared, soft knee 0.90] 9.0% 12s
+knife__vorbis_192        in  18.24 | auto 23.44 [smeared, soft knee 0.90] 7.7% 12s
+knife__al1_6             in  14.00 | auto 14.02 [limiter] 0.6% 9s
+knife__osal1             in   6.81 | auto 7.12 [limiter, soft knee 0.85] 9.1% 11s

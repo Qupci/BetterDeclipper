@@ -111,8 +111,11 @@ def _sspade_batch(Yb, LBb, UBb, A, As, s, r, eps, max_iter, M, rank_w):
 def declip_spade(y, m_hi, m_lo, th_hi, th_lo, win_len=4096, hop=None, red=2, variant="a",
                  s=8, r=1, eps=0.1, max_iter=1000, stereo="pca", chan_weight=None,
                  device="cpu", dtype=torch.float32, verbose=False, max_gain=None,
-                 batch_frames=None, pad_multiple=None):
-    """y: (T, C) clipped signal. Returns (T, C) estimate."""
+                 batch_frames=None, pad_multiple=None, freq_weight=None, sr=None):
+    """y: (T, C) clipped signal. Returns (T, C) estimate.
+
+    freq_weight: optional (f0_hz, q): coefficients are ranked by |c|^2 / (1 + (f/f0)^q), which makes
+    high-frequency atoms harder to select (fewer spiky artifacts inside long clipped gaps)."""
     T, C = y.shape
     hop = hop or win_len // 4
     R = win_len // hop
@@ -134,9 +137,16 @@ def declip_spade(y, m_hi, m_lo, th_hi, th_lo, win_len=4096, hop=None, red=2, var
     rank_w = None
     nfft = red * win_len
     K = nfft // 2 + 1
+    cw = torch.ones(C, dtype=dtype, device=device)
     if chan_weight is not None:
         cw = torch.as_tensor(chan_weight, dtype=dtype, device=device) ** 2
-        rank_w = cw[:, None].expand(C, K).reshape(1, -1)
+    fw = torch.ones(K, dtype=dtype, device=device)
+    if freq_weight is not None:
+        f0, q = freq_weight
+        f = torch.arange(K, dtype=dtype, device=device) * (float(sr) / nfft)
+        fw = 1.0 / (1.0 + (f / f0) ** q)
+    if chan_weight is not None or freq_weight is not None:
+        rank_w = (cw[:, None] * fw[None, :]).reshape(1, -1)
     M = C * K
 
     def A(xf):  # (N, C, W) -> (N, C*K): analysis on the rotated channels, joint over channels

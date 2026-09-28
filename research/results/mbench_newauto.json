@@ -1,0 +1,590 @@
+{
+ "ex__hard6": {
+  "in": 25.397840463382884,
+  "auto": 40.87243861195853,
+  "auto#mode": "clip",
+  "auto#flag": 0.017327250768693
+ },
+ "ex__hard9": {
+  "in": 15.91234309470137,
+  "auto": 30.831380418750662,
+  "auto#mode": "clip",
+  "auto#flag": 0.10950918768667885
+ },
+ "ex__tanh6": {
+  "in": 23.323459575768798,
+  "auto": 33.914716264816754,
+  "auto#mode": "none, soft knee 0.75",
+  "auto#flag": 0.08534899394883194
+ },
+ "ex__tanh9k4": {
+  "in": 14.319225595472902,
+  "auto": 24.929156872487276,
+  "auto#mode": "none, soft knee 0.65",
+  "auto#flag": 0.3132034142737238
+ },
+ "ex__cubic6": {
+  "in": 20.169553338483528,
+  "auto": 26.465224420785503,
+  "auto#mode": "clip, soft knee 0.50",
+  "auto#flag": 0.2596999742548021
+ },
+ "ex__softhard6": {
+  "in": 24.915657760455993,
+  "auto": 33.87521749853042,
+  "auto#mode": "clip, soft knee 0.73",
+  "auto#flag": 0.098611957074592
+ },
+ "ex__softhard9": {
+  "in": 15.865825138086949,
+  "auto": 28.219501256195404,
+  "auto#mode": "clip, soft knee 0.80",
+  "auto#flag": 0.21456790976203483
+ },
+ "ex__oshard6": {
+  "in": 25.402971171733242,
+  "auto": 39.655685364652456,
+  "auto#mode": "smeared",
+  "auto#flag": 0.01822833269493615
+ },
+ "ex__resamp6": {
+  "in": 25.39662631357605,
+  "auto": 38.9190436144906,
+  "auto#mode": "smeared",
+  "auto#flag": 0.018386665641045366
+ },
+ "ex__mp3_128": {
+  "in": 20.575987517350768,
+  "auto": 23.143152096855587,
+  "auto#mode": "smeared, soft knee 0.85",
+  "auto#flag": 0.04716394667604378
+ },
+ "ex__aac_256": {
+  "in": 21.720628004236676,
+  "auto": 25.38680900280191,
+  "auto#mode": "smeared",
+  "auto#flag": 0.02481324266000222
+ },
+ "ex__vorbis_192": {
+  "in": 24.761960606766916,
+  "auto": 31.166837788135737,
+  "auto#mode": "smeared",
+  "auto#flag": 0.027089494912707034
+ },
+ "ex__al1_6": {
+  "in": 21.08170677911085,
+  "auto": 22.778167766666684,
+  "auto#mode": "limiter, soft knee 0.48",
+  "auto#flag": 0.30194721606500347
+ },
+ "ex__osal1": {
+  "in": 9.349891841785327,
+  "auto": 11.671341675211558,
+  "auto#mode": "limiter, soft knee 0.48",
+  "auto#flag": 0.4629075538085102
+ },
+ "petal__hard6": {
+  "in": 21.893392796726665,
+  "auto": 33.018131417819326,
+  "auto#mode": "clip",
+  "auto#flag": 0.016352985638699923
+ },
+ "petal__hard9": {
+  "in": 14.617699886065385,
+  "auto": 24.162343472250612,
+  "auto#mode": "clip",
+  "auto#flag": 0.07009108087679516
+ },
+ "petal__tanh6": {
+  "in": 20.727093702297708,
+  "auto": 28.31623785286507,
+  "auto#mode": "smeared, soft knee 0.78",
+  "auto#flag": 0.04872751322751323
+ },
+ "petal__tanh9k4": {
+  "in": 13.568325651981318,
+  "auto": 20.68506648867848,
+  "auto#mode": "none, soft knee 0.73",
+  "auto#flag": 0.1505302343159486
+ },
+ "petal__cubic6": {
+  "in": 18.95486948357454,
+  "auto": 22.826366578816643,
+  "auto#mode": "clip, soft knee 0.68",
+  "auto#flag": 0.06227059712773998
+ },
+ "petal__softhard6": {
+  "in": 21.685607830776448,
+  "auto": 29.047056568719043,
+  "auto#mode": "clip, soft knee 0.75",
+  "auto#flag": 0.05655895691609977
+ },
+ "petal__softhard9": {
+  "in": 14.591488474028347,
+  "auto": 23.82398375431841,
+  "auto#mode": "clip, soft knee 0.83",
+  "auto#flag": 0.12215910808767952
+ },
+ "petal__oshard6": {
+  "in": 21.89466756571461,
+  "auto": 23.349863665874885,
+  "auto#mode": "clip+limiter",
+  "auto#flag": 0.006903250188964475
+ },
+ "petal__resamp6": {
+  "in": 21.89182270320856,
+  "auto": 32.827114397971506,
+  "auto#mode": "smeared",
+  "auto#flag": 0.017399652777777778
+ },
+ "petal__mp3_128": {
+  "in": 18.058536042241975,
+  "auto": 20.835243594572233,
+  "auto#mode": "smeared, soft knee 0.88",
+  "auto#flag": 0.046712773998488284
+ },
+ "petal__aac_256": {
+  "in": 19.126123743936812,
+  "auto": 23.361273860489305,
+  "auto#mode": "smeared, soft knee 0.90",
+  "auto#flag": 0.029590325018896448
+ },
+ "petal__vorbis_192": {
+  "in": 20.79832816027951,
+  "auto": 25.51114029627214,
+  "auto#mode": "smeared, soft knee 0.88",
+  "auto#flag": 0.03086583522297808
+ },
+ "petal__al1_6": {
+  "in": 17.92763154537592,
+  "auto": 18.499180048600397,
+  "auto#mode": "limiter, soft knee 0.83",
+  "auto#flag": 0.028487150415721845
+ },
+ "petal__osal1": {
+  "in": 8.774730200104077,
+  "auto": 9.218075398225961,
+  "auto#mode": "limiter, soft knee 0.83",
+  "auto#flag": 0.09168140589569161
+ },
+ "ruder__hard6": {
+  "in": 19.233792247938677,
+  "auto": 28.097210032253916,
+  "auto#mode": "clip",
+  "auto#flag": 0.03222940287226002
+ },
+ "ruder__hard9": {
+  "in": 12.787216377285125,
+  "auto": 21.77671341908784,
+  "auto#mode": "clip",
+  "auto#flag": 0.11359637188208617
+ },
+ "ruder__tanh6": {
+  "in": 18.347874859269957,
+  "auto": 25.19619826602017,
+  "auto#mode": "none, soft knee 0.78",
+  "auto#flag": 0.08245880574452003
+ },
+ "ruder__tanh9k4": {
+  "in": 12.000965007554449,
+  "auto": 18.600549215427908,
+  "auto#mode": "none, soft knee 0.73",
+  "auto#flag": 0.21682501889644748
+ },
+ "ruder__cubic6": {
+  "in": 17.134049765613227,
+  "auto": 20.675585424724396,
+  "auto#mode": "clip, soft knee 0.75",
+  "auto#flag": 0.06648148148148147
+ },
+ "ruder__softhard6": {
+  "in": 19.09540493525236,
+  "auto": 26.3497160057919,
+  "auto#mode": "clip, soft knee 0.80",
+  "auto#flag": 0.07474867724867724
+ },
+ "ruder__softhard9": {
+  "in": 12.769831912287074,
+  "auto": 20.722309808495613,
+  "auto#mode": "clip, soft knee 0.80",
+  "auto#flag": 0.19578004535147392
+ },
+ "ruder__oshard6": {
+  "in": 19.238049413961225,
+  "auto": 25.888686458848284,
+  "auto#mode": "limiter+smeared",
+  "auto#flag": 0.03076039304610733
+ },
+ "ruder__resamp6": {
+  "in": 19.232626462799228,
+  "auto": 28.259752767113206,
+  "auto#mode": "smeared",
+  "auto#flag": 0.035728472222222224
+ },
+ "ruder__mp3_128": {
+  "in": 16.386104717648642,
+  "auto": 19.575343650835148,
+  "auto#mode": "smeared, soft knee 0.88",
+  "auto#flag": 0.097359410430839
+ },
+ "ruder__aac_256": {
+  "in": 16.93446290483964,
+  "auto": 20.946223390455387,
+  "auto#mode": "smeared, soft knee 0.90",
+  "auto#flag": 0.055141345427059715
+ },
+ "ruder__vorbis_192": {
+  "in": 18.185845608205653,
+  "auto": 22.505609489571036,
+  "auto#mode": "smeared, soft knee 0.88",
+  "auto#flag": 0.06773431594860166
+ },
+ "ruder__al1_6": {
+  "in": 9.504030826292931,
+  "auto": 9.513560959110634,
+  "auto#mode": "limiter+smeared",
+  "auto#flag": 0.00858692365835223
+ },
+ "ruder__osal1": {
+  "in": 6.300831119385131,
+  "auto": 6.588142316961997,
+  "auto#mode": "limiter+smeared, soft knee 0.83",
+  "auto#flag": 0.09334467120181406
+ },
+ "thrash__hard6": {
+  "in": 20.512045961628708,
+  "auto": 33.63893106723951,
+  "auto#mode": "clip",
+  "auto#flag": 0.0249119425547997
+ },
+ "thrash__hard9": {
+  "in": 13.534760063865987,
+  "auto": 27.44995805527713,
+  "auto#mode": "clip",
+  "auto#flag": 0.09595653817082389
+ },
+ "thrash__tanh6": {
+  "in": 19.44530459738604,
+  "auto": 30.27102945922173,
+  "auto#mode": "none, soft knee 0.75",
+  "auto#flag": 0.07757482993197279
+ },
+ "thrash__tanh9k4": {
+  "in": 12.619166461378883,
+  "auto": 23.17900039981356,
+  "auto#mode": "smeared, soft knee 0.68",
+  "auto#flag": 0.22741118669690097
+ },
+ "thrash__cubic6": {
+  "in": 17.93654365940447,
+  "auto": 24.89761509162637,
+  "auto#mode": "clip, soft knee 0.50",
+  "auto#flag": 0.20485449735449734
+ },
+ "thrash__softhard6": {
+  "in": 20.33058824442794,
+  "auto": 30.931422328039364,
+  "auto#mode": "clip, soft knee 0.75",
+  "auto#flag": 0.07847089947089947
+ },
+ "thrash__softhard9": {
+  "in": 13.513295613085985,
+  "auto": 25.84314187706843,
+  "auto#mode": "clip, soft knee 0.80",
+  "auto#flag": 0.17085525321239606
+ },
+ "thrash__oshard6": {
+  "in": 20.514856868074745,
+  "auto": 22.85496118057385,
+  "auto#mode": "limiter+smeared",
+  "auto#flag": 0.01420408163265306
+ },
+ "thrash__resamp6": {
+  "in": 20.510326363013135,
+  "auto": 34.622354671125585,
+  "auto#mode": "smeared",
+  "auto#flag": 0.026217708333333332
+ },
+ "thrash__mp3_128": {
+  "in": 18.077792723710907,
+  "auto": 23.140489093356674,
+  "auto#mode": "smeared, soft knee 0.88",
+  "auto#flag": 0.05452721088435374
+ },
+ "thrash__aac_256": {
+  "in": 18.383227386419414,
+  "auto": 24.199773552711434,
+  "auto#mode": "smeared",
+  "auto#flag": 0.0352766439909297
+ },
+ "thrash__vorbis_192": {
+  "in": 20.282099627263154,
+  "auto": 28.765691499030655,
+  "auto#mode": "smeared, soft knee 0.90",
+  "auto#flag": 0.040043083900226754
+ },
+ "thrash__al1_6": {
+  "in": 16.464510739706423,
+  "auto": 17.12582941652256,
+  "auto#mode": "limiter, soft knee 0.78",
+  "auto#flag": 0.05309712773998488
+ },
+ "thrash__osal1": {
+  "in": 7.857302092022579,
+  "auto": 8.219184505638626,
+  "auto#mode": "limiter, soft knee 0.83",
+  "auto#flag": 0.0959625850340136
+ },
+ "violet__hard6": {
+  "in": 19.818882087907788,
+  "auto": 27.170004714140422,
+  "auto#mode": "clip",
+  "auto#flag": 0.025100907029478457
+ },
+ "violet__hard9": {
+  "in": 13.23539262507743,
+  "auto": 20.35331462959804,
+  "auto#mode": "clip",
+  "auto#flag": 0.08977739984882842
+ },
+ "violet__tanh6": {
+  "in": 18.88675693423384,
+  "auto": 24.439952077542927,
+  "auto#mode": "none, soft knee 0.78",
+  "auto#flag": 0.06435714285714286
+ },
+ "violet__tanh9k4": {
+  "in": 12.412768988899167,
+  "auto": 17.932646659522714,
+  "auto#mode": "none, soft knee 0.75",
+  "auto#flag": 0.15993461829176114
+ },
+ "violet__cubic6": {
+  "in": 17.591468463756506,
+  "auto": 21.09639029500118,
+  "auto#mode": "clip, soft knee 0.70",
+  "auto#flag": 0.07004119425547997
+ },
+ "violet__softhard6": {
+  "in": 19.671092883637943,
+  "auto": 25.40038241491219,
+  "auto#mode": "clip, soft knee 0.78",
+  "auto#flag": 0.06578684807256235
+ },
+ "violet__softhard9": {
+  "in": 13.216677976683357,
+  "auto": 19.979010491715076,
+  "auto#mode": "clip, soft knee 0.83",
+  "auto#flag": 0.14712773998488285
+ },
+ "violet__oshard6": {
+  "in": 19.807128692326575,
+  "auto": 26.89370131031074,
+  "auto#mode": "smeared",
+  "auto#flag": 0.02797845804988662
+ },
+ "violet__resamp6": {
+  "in": 19.8203328182135,
+  "auto": 27.01232570246333,
+  "auto#mode": "smeared",
+  "auto#flag": 0.029966319444444445
+ },
+ "violet__mp3_128": {
+  "in": 15.812984540282976,
+  "auto": 17.8472239042739,
+  "auto#mode": "smeared, soft knee 0.85",
+  "auto#flag": 0.10356462585034014
+ },
+ "violet__aac_256": {
+  "in": 17.217198043893557,
+  "auto": 20.853340769159047,
+  "auto#mode": "smeared, soft knee 0.90",
+  "auto#flag": 0.046078609221466366
+ },
+ "violet__vorbis_192": {
+  "in": 18.696960376729038,
+  "auto": 22.400582211678504,
+  "auto#mode": "smeared, soft knee 0.88",
+  "auto#flag": 0.04985525321239607
+ },
+ "violet__al1_6": {
+  "in": 15.358548850143654,
+  "auto": 15.371276744160562,
+  "auto#mode": "limiter",
+  "auto#flag": 0.0025411942554799697
+ },
+ "violet__osal1": {
+  "in": 8.272499022596744,
+  "auto": 8.719199709340282,
+  "auto#mode": "limiter, soft knee 0.83",
+  "auto#flag": 0.0916912320483749
+ },
+ "bigshot__hard6": {
+  "in": 15.336071161271505,
+  "auto": 21.99201104808589,
+  "auto#mode": "clip",
+  "auto#flag": 0.11102256944444444
+ },
+ "bigshot__hard9": {
+  "in": 9.753899550882796,
+  "auto": 16.06397912840598,
+  "auto#mode": "clip",
+  "auto#flag": 0.2539826388888889
+ },
+ "bigshot__tanh6": {
+  "in": 14.710741771641086,
+  "auto": 20.003031634925446,
+  "auto#mode": "none, soft knee 0.83",
+  "auto#flag": 0.17240520833333334
+ },
+ "bigshot__tanh9k4": {
+  "in": 9.33001361985914,
+  "auto": 14.350850221595513,
+  "auto#mode": "none, soft knee 0.50",
+  "auto#flag": 0.5477454861111111
+ },
+ "bigshot__cubic6": {
+  "in": 14.120396134660014,
+  "auto": 17.22887908369112,
+  "auto#mode": "clip, soft knee 0.80",
+  "auto#flag": 0.145346875
+ },
+ "bigshot__softhard6": {
+  "in": 15.26224066065681,
+  "auto": 21.231711821836726,
+  "auto#mode": "clip, soft knee 0.85",
+  "auto#flag": 0.1646732638888889
+ },
+ "bigshot__softhard9": {
+  "in": 9.74737622179799,
+  "auto": 16.200895368110917,
+  "auto#mode": "clip, soft knee 0.83",
+  "auto#flag": 0.33813020833333335
+ },
+ "bigshot__oshard6": {
+  "in": 15.336258162974696,
+  "auto": 21.898642088923207,
+  "auto#mode": "smeared",
+  "auto#flag": 0.11555069444444445
+ },
+ "bigshot__resamp6": {
+  "in": 15.336071161271505,
+  "auto": 21.99201104808589,
+  "auto#mode": "clip",
+  "auto#flag": 0.11102256944444444
+ },
+ "bigshot__mp3_128": {
+  "in": 13.563656462593558,
+  "auto": 17.597152328612978,
+  "auto#mode": "smeared, soft knee 0.85",
+  "auto#flag": 0.24977395833333332
+ },
+ "bigshot__aac_256": {
+  "in": 13.791042281385263,
+  "auto": 18.16136599539238,
+  "auto#mode": "smeared, soft knee 0.90",
+  "auto#flag": 0.16482013888888888
+ },
+ "bigshot__vorbis_192": {
+  "in": 15.079046067372811,
+  "auto": 19.998315923877918,
+  "auto#mode": "smeared, soft knee 0.88",
+  "auto#flag": 0.17954270833333333
+ },
+ "bigshot__al1_6": {
+  "in": 11.213503855224285,
+  "auto": 11.22149288592265,
+  "auto#mode": "limiter",
+  "auto#flag": 0.004425694444444445
+ },
+ "bigshot__osal1": {
+  "in": 5.565929242117357,
+  "auto": 5.8531199990049,
+  "auto#mode": "limiter, soft knee 0.90",
+  "auto#flag": 0.08411944444444444
+ },
+ "knife__hard6": {
+  "in": 18.478955901717832,
+  "auto": 26.005645445530728,
+  "auto#mode": "clip",
+  "auto#flag": 0.05081284722222222
+ },
+ "knife__hard9": {
+  "in": 11.977531850320805,
+  "auto": 18.781256354165528,
+  "auto#mode": "clip",
+  "auto#flag": 0.1629607638888889
+ },
+ "knife__tanh6": {
+  "in": 17.56969739744835,
+  "auto": 22.799675038309374,
+  "auto#mode": "none, soft knee 0.80",
+  "auto#flag": 0.10766805555555556
+ },
+ "knife__tanh9k4": {
+  "in": 11.26163255015884,
+  "auto": 15.269648717384959,
+  "auto#mode": "none, soft knee 0.50",
+  "auto#flag": 0.480553125
+ },
+ "knife__cubic6": {
+  "in": 16.438182847299693,
+  "auto": 19.171347751901756,
+  "auto#mode": "clip, soft knee 0.78",
+  "auto#flag": 0.08655833333333333
+ },
+ "knife__softhard6": {
+  "in": 18.34081927088548,
+  "auto": 23.92463664524246,
+  "auto#mode": "clip, soft knee 0.80",
+  "auto#flag": 0.11157361111111111
+ },
+ "knife__softhard9": {
+  "in": 11.963094996907826,
+  "auto": 18.06297531245642,
+  "auto#mode": "clip, soft knee 0.80",
+  "auto#flag": 0.2611298611111111
+ },
+ "knife__oshard6": {
+  "in": 18.488690179537777,
+  "auto": 25.677406879806224,
+  "auto#mode": "smeared",
+  "auto#flag": 0.054971875
+ },
+ "knife__resamp6": {
+  "in": 18.478955901717832,
+  "auto": 26.005645445530728,
+  "auto#mode": "clip",
+  "auto#flag": 0.05081284722222222
+ },
+ "knife__mp3_128": {
+  "in": 14.598819654703075,
+  "auto": 15.797710388213613,
+  "auto#mode": "smeared",
+  "auto#flag": 0.1296204861111111
+ },
+ "knife__aac_256": {
+  "in": 15.826091628873591,
+  "auto": 19.357864519404465,
+  "auto#mode": "smeared, soft knee 0.90",
+  "auto#flag": 0.08997465277777777
+ },
+ "knife__vorbis_192": {
+  "in": 18.237569843546673,
+  "auto": 23.443789751388504,
+  "auto#mode": "smeared, soft knee 0.90",
+  "auto#flag": 0.07665798611111112
+ },
+ "knife__al1_6": {
+  "in": 14.000897003545415,
+  "auto": 14.023299160155439,
+  "auto#mode": "limiter",
+  "auto#flag": 0.006225694444444444
+ },
+ "knife__osal1": {
+  "in": 6.807105691481453,
+  "auto": 7.121618495332889,
+  "auto#mode": "limiter, soft knee 0.85",
+  "auto#flag": 0.09121840277777778
+ }
+}

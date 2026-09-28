@@ -13,12 +13,40 @@ The example audio and the ProAudioDeclipper files are not included in this repos
 |-------------|------------------|----------------------------|---------------|-------------------|
 | clipped input | 10.47 dB | 9.04 dB | - | - |
 | ProAudioDeclipper (provided output) | 21.82 dB | 20.41 dB | - | - |
-| BetterDeclipper `--preset fast` | **24.17 dB** | 22.73 dB | 35 s | 1.5 s |
-| BetterDeclipper `--preset normal` | **25.21 dB** | 23.78 dB | 142 s | 6.6 s |
-| BetterDeclipper `--preset high` | **25.30 dB** | 23.87 dB | 181 s | 8.9 s |
-| BetterDeclipper `--preset best` | **25.37 dB** | 23.94 dB | 313 s | 13.6 s |
+| BetterDeclipper `--preset fast` | **24.16 dB** | 22.73 dB | 86 s | 5.4 s |
+| BetterDeclipper `--preset normal` | **25.23 dB** | 23.80 dB | ~180 s | 13.0 s |
+| BetterDeclipper `--preset high` | **25.39 dB** | 23.96 dB | ~220 s | 14.5 s |
+| BetterDeclipper `--preset best` | **25.47 dB** | 24.04 dB | ~350 s | 18.2 s |
 
 Even the `fast` preset beats ProAudioDeclipper by 2.3 dB. GPU and CPU give the same quality (within 0.004 dB).
+Times include the automatic analysis (about 4 s on the GPU and 40 s on the CPU for this file; the CPU
+times marked ~ are the measured restoration times plus that). `--clip-level`, `--knee` or `--mode legacy`
+skip the analysis.
+
+### Mastered material
+
+Real masters are rarely clipped like the example: they are soft-clipped, clipped and then limited,
+lossy-encoded or resampled. To measure this, 7 unclipped 30 s excerpts (Deltarune soundtrack pieces
+and the example's source, 44.1 and 48 kHz) were processed in 15 mastering-style ways, and the
+restorations were compared with the unprocessed originals (`research/master/`). Mean SDR over the 7
+excerpts, `fast` preset:
+
+| processing | input | old `auto` | new `auto` | best fixed setting* |
+|------------|-------|------------|------------|---------------------|
+| hard clip -6 / -9 dB | 20.1 / 13.1 | 30.1 / 22.8 | **30.1 / 22.8** | 30.4 / 23.0 |
+| soft shoulder + hard ceiling (2 kinds) | 19.9 / 13.1 | 24.8 / 20.2 | **27.2 / 21.9** | 27.8 / 22.1 |
+| tanh saturation (2 kinds) | 19.0 / 12.2 | 19.5 / 13.8 | **26.4 / 19.2** | 26.5 / 19.6 |
+| cubic saturation | 17.5 | 17.8 | **21.7** | 22.4 |
+| 4x oversampled clipper | 20.1 | 20.3 | **29.7** | 30.1 |
+| hard clip, then resampled to 48 kHz | 20.1 | 22.1 | **30.0** | 30.0 |
+| hard clip, then MP3 128k / AAC 256k / Vorbis 192k | 16.7 / 17.6 / 19.4 | 17.1 / 19.4 / 21.5 | **19.8 / 21.8 / 24.8** | 19.9 / 22.2 / 24.9 |
+| AL-1 limiter / OS clip + AL-1 / slow AL-1 | 15.1 / 7.6 / 4.5 | 15.1 / 7.6 / 4.5 | **16.6 / 8.8 / 4.6** | 17.0 / 9.6 / 4.6 |
+| **all 105 cases** | 15.7 | 18.4 | **21.7** | 22.0 |
+
+\* the best of all tried constraint settings for each case, chosen with the ground truth (not available
+in practice). The new `auto` is never worse than the old one, and on average 0.3 dB from that choice.
+Limiters remain the hardest case: their gain dips could be undone (+5 to +10 dB with the right
+depth per limiter event), but no blind estimate of the depths was found yet (`research/LOG.md`).
 
 ## Usage
 
@@ -27,7 +55,7 @@ an NVIDIA GPU with the CUDA build of torch is much faster (see [GPU](#gpu-accele
 On this machine, `declip.bat in.wav out.wav` uses the GPU environment in `.venv` automatically.
 
 ```
-python -m betterdeclipper input.wav output.wav                 # auto-detect clip level, "normal" preset
+python -m betterdeclipper input.wav output.wav                 # automatic analysis, "normal" preset
 python -m betterdeclipper input.wav output.wav --preset best   # slowest, most accurate
 python -m betterdeclipper input.flac output.wav --clip-level -12   # force the clip level (dBFS)
 python -m betterdeclipper in.wav out.wav --format pcm24 --normalize -0.1
@@ -36,28 +64,41 @@ python -m betterdeclipper in.wav out.wav --format pcm24 --normalize -0.1
 - Output is 32-bit float by default: restored peaks can exceed the clip level (and even 0 dBFS
   when the input was clipped at full scale). For PCM output, use `--normalize` or `--gain`.
 - Any sample rate works (window lengths are defined in milliseconds).
-- `--clip-level` forces a hard-clip level (e.g. when auto-detection finds nothing).
-- **Clipping modes** (`--mode`, default `auto`):
-  - `hard`: a flat clipping plateau (digital clipping, possibly dithered or requantized). Restored
-    samples must lie beyond the clip level.
-  - `soft`: soft clipping or heavy limiting (e.g. loudness-war masters without a flat top). Above a
-    knee, the original is assumed to be at least as large as the observed sample. The knee comes from
-    the pile-up of the amplitude histogram, or `0.8 x peak` if there is none (`--knee` overrides it).
-    This is experimental: on a synthetic tanh-saturated test it improved SDR from 24.1 to 34.0 dB.
-  - `auto`: `hard` if a plateau is found, `soft` if only a histogram pile-up is found, otherwise
-    the input is returned unchanged.
+- `--clip-level` forces a hard-clip level, and `--knee` forces a soft-clip knee (both skip the analysis).
+- **Modes** (`--mode`, default `auto`). `auto` first analyzes how the master was clipped or limited,
+  separately per channel and polarity:
+  - **clip**: a flat plateau (digital clipping, possibly dithered). Restored samples must lie beyond it.
+  - **limiter**: a ceiling that is only touched by isolated samples (brickwall / look-ahead limiter,
+    often after a clipper, as in most loud EDM masters). A soft region from 0.5 x ceiling is added:
+    fast limiters reshape the whole crest, not just the touching samples.
+  - **smeared**: a blurred plateau with overshoots above it: clipped audio that was then lossy-encoded
+    (MP3/AAC/Vorbis), resampled, or clipped by an oversampled clipper. Samples above
+    `ceiling - 6 x blur` are restored, and overshoots are not forced upwards.
+  - **soft shoulder**: soft clipping or saturation below the ceiling (or without any ceiling). A quick
+    first pass measures how much the restoration lifts each level; real compression makes that lift
+    accelerate towards the ceiling, and the knee is placed where the acceleration starts.
+
+  Every sample above the knee may only grow (`|x| >= |y|`, and `|x| >= ceiling` on the plateau);
+  everything below it is kept exactly. `hard` uses only the ceilings (no soft region), `soft` always
+  adds one (knee from the first pass, or 0.8 x ceiling), `legacy` is the previous detection.
 - `--max-gain DB` is an optional safety cap. Restored samples may exceed the clip level by at most
-  DB decibels, and the cap is part of the constraints, so peaks stay smooth. It is off by default: in
-  the example, the true peaks are 11.8 dB above the clip level.
+  DB decibels, and the cap is part of the constraints, so peaks stay smooth. It is off by default for
+  clipping (in the example the true peaks are 11.8 dB above the clip level); under limiter ceilings a
+  +9 dB cap is applied automatically, since limiters rarely take more than 6-9 dB and deliberately
+  square-clipped sounds under a limiter would otherwise be over-restored.
 
 Presets (each averages structurally different models):
 
-| preset | models averaged | example (21.7 s): CPU / GPU |
-|--------|-----------------|-----------------------------|
-| fast   | NMF-PnP (150 it) | 35 s / 1.5 s |
-| normal | NMF-PnP (weight 0.65) + stereo A-SPADE (0.35) | 142 s / 6.6 s |
-| high   | NMF-PnP + PEW-PnP + stereo A-SPADE | 181 s / 8.9 s |
-| best   | like `high` with twice the iterations | 313 s / 13.6 s |
+| preset | models averaged (below 4 kHz; above 4 kHz only NMF-PnP) |
+|--------|-----------------|
+| fast   | NMF-PnP (150 it) |
+| normal | NMF-PnP (weight 0.65) + stereo A-SPADE (0.35) |
+| high   | NMF-PnP + PEW-PnP + stereo A-SPADE |
+| best   | like `high` with twice the iterations |
+
+SPADE and PEW improve the low and mid range, but inside long clipped gaps they add jagged
+high-frequency errors that can be heard as clicks. Above 4 kHz only the NMF model is used: on 22
+hard-clip test files this raised SDR (normal +0.07 dB, high +0.13 dB on average) and removed the clicks.
 
 ## GPU acceleration
 
@@ -74,7 +115,8 @@ declip.bat input.wav output.wav
 ```
 `cu126` builds support NVIDIA GPUs from the GTX 900 series (Maxwell) onward, with a recent driver.
 
-Measured on a GTX 1660 Ti (6 GB) with an i5-2320 host. The example numbers are in the tables above.
+Measured on a GTX 1660 Ti (6 GB) with an i5-2320 host, before the automatic analysis was added (it adds
+a few seconds per song on the GPU). The example numbers are in the tables above.
 
 | input | preset | CPU | GPU | GPU speed vs real time |
 |-------|--------|-----|-----|------------------------|
@@ -98,12 +140,16 @@ GPU memory use is under 2 GB. What makes it fast:
 
 ## How it works
 
-1. **Clip detection** (`detect.py`). Clipped samples form a dense plateau in the amplitude histogram.
-   The plateau's lower edge becomes the clip level, separately per channel and polarity. This
-   tolerates dither and requantization noise, which smears the plateau over a few LSBs. For
-   soft clipping, a knee is detected where the amplitude density rises above its natural decay.
-2. **Consistency**. Unclipped samples are kept exactly. Clipped samples are only allowed to lie
-   beyond the clip level, with the sign of the clipped sample.
+1. **Analysis** (`auto.py`, `detect.py`). The top of the amplitude histogram is fitted with a model of
+   "natural density up to a ceiling + clipped mass at the ceiling, blurred by a width sigma". The fit gives
+   the ceiling and how blurred it is (dither ~0.03 %, resampling/oversampling ~0.2-0.5 %, lossy codecs
+   1-6 %). Runs of samples at the ceiling tell clipping (long flat runs), oversampled clipping (long
+   rippled runs) and limiting (isolated touches) apart. A quick first restoration with a low knee
+   measures the lift per level; it only accelerates towards the ceiling under real compression, which
+   places the soft-shoulder knee.
+2. **Consistency**. Samples below the knee are kept exactly. Samples above it may only grow, with their
+   sign: `|x| >= min(|y|, ceiling)`, so plateau samples lie beyond the ceiling and overshoots of lossy
+   codecs are not forced upward.
 3. **Restoration models**. Each one finds a consistent signal that fits a prior of the time-frequency (TF) coefficients:
    - *NMF-PnP* (`methods/pnp.py`, strongest single model): plug-and-play iterations
      `x <- Wiener_V(P_consistent(x))`, where the Wiener gain `V/(V+lambda^2)` uses a low-rank
@@ -121,7 +167,7 @@ GPU memory use is under 2 GB. What makes it fast:
 4. **Fusion** (`engine.py`). The averaged models are structurally different: NMF/PEW tend to
    slightly undershoot peaks, while SPADE overshoots (PAD behaves like SPADE). Their errors are only
    weakly correlated (~0.5), so averaging adds up to about 1 dB. The average of consistent signals is
-   still consistent.
+   still consistent. The fusion is two-band (4 kHz crossover): SPADE/PEW only contribute below it.
 5. **Speed**. torch float32 FFTs, vectorized frames, slice-add overlap-add, in-place updates,
    and flush-to-zero for denormal floats. Without flush-to-zero, the NMF updates run 10x slower
    on older CPUs. An NVIDIA GPU runs the same code 20x faster (see above).

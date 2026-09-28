@@ -24,10 +24,11 @@ def main(argv=None):
     ap.add_argument("--clip-level", default=None,
                     help="override automatic detection: clip level in dBFS (e.g. -12) or linear (e.g. 0.25), "
                          "applied to both polarities of all channels")
-    ap.add_argument("--mode", choices=["auto", "hard", "soft"], default="auto",
-                    help="hard: flat clipping plateau; soft: soft clipping/limiting above a knee "
-                         "(original >= observed); auto: hard if a clipping plateau is found, soft if only a "
-                         "limiter pile-up is found, otherwise no change (default)")
+    ap.add_argument("--mode", choices=["auto", "hard", "soft", "legacy"], default="auto",
+                    help="auto (default): analyzes the master - clip plateau, limiter ceiling, smeared ceiling "
+                         "(lossy codec / resampling / oversampled clipper) and soft saturation below it - and "
+                         "restores accordingly; hard: ceilings only (no soft region); soft: always add a soft "
+                         "region below the ceiling; legacy: the previous plateau-or-knee detection")
     ap.add_argument("--knee", default=None,
                     help="soft mode: force the knee level in dBFS (e.g. -9) or linear (e.g. 0.35)")
     ap.add_argument("--max-gain", type=float, default=None, metavar="DB",
@@ -66,12 +67,20 @@ def main(argv=None):
                      mode=mode, knees=knees, max_gain_db=args.max_gain, device=args.device)
     lv_str = ", ".join(
         f"ch{c}: " + "/".join("-" if v is None else f"{20*np.log10(abs(v)):.2f} dBFS" for v in lvl)
-        for c, lvl in enumerate(info["levels"]))
-    print(f"mode: {info['mode']}   {'knees' if info['mode'] == 'soft' else 'clip levels'}: {lv_str}")
-    print(f"clipped samples: {info['clipped_frac']*100:.2f}%   preset: {args.preset}   device: {info.get('device', 'cpu')}"
+        for c, lvl in enumerate(info["levels"] or []))
+    an = info.get("analysis")
+    if an is not None:
+        ceil = ", ".join(f"ch{c}: " + "/".join("-" if r["theta"] is None else
+                                                  f"{r['kind']} {20*np.log10(r['theta']):.2f} dBFS" for r in row)
+                         for c, row in enumerate(an["refs"]))
+        print(f"analysis: {info['mode']}   ceilings: {ceil}")
+        print(f"flagged above: {lv_str}")
+    else:
+        print(f"mode: {info['mode']}   {'knees' if info['mode'] == 'soft' else 'clip levels'}: {lv_str}")
+    print(f"flagged samples: {info['clipped_frac']*100:.2f}%   preset: {args.preset}   device: {info.get('device', 'cpu')}"
           f"   time: {info['time']:.1f}s")
     if info["clipped_frac"] == 0:
-        print("no clipping detected; output equals input (use --clip-level to force a level)")
+        print("no clipping or limiting detected; output equals input (use --mode soft, --knee or --clip-level to force it)")
     x = x * 10 ** (args.gain / 20)
     peak = np.abs(x).max()
     if args.normalize is not None and peak > 0:
