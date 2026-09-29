@@ -1,0 +1,96 @@
+== 17_Rome_Search.wav  44100 Hz 2 ch 120 s lsb 3.1e-05  -> clip, soft knee 0.88  flagged 9.30%  (18s)
+   ch0+: clip     theta  -0.11 dBFS  peak  -0.10  sig/th 0.0004  long 0.99 flat 0.94  bump   218.4  touches 5235 (43.6/s)  knee -1.16 dB  flagged 5.62%
+   ch0-: clip     theta  -0.10 dBFS  peak  -0.10  sig/th 0.0004  long 0.99 flat 0.95  bump   215.7  touches 5396 (45.0/s)  knee -1.16 dB  flagged 5.71%
+   ch1+: clip     theta  -0.10 dBFS  peak  -0.10  sig/th 0.0004  long 0.97 flat 0.93  bump   151.4  touches 3982 (33.2/s)  knee -1.16 dB  flagged 3.59%
+   ch1-: clip     theta  -0.10 dBFS  peak  -0.10  sig/th 0.0004  long 0.97 flat 0.93  bump   140.7  touches 4084 (34.0/s)  knee -1.16 dB  flagged 3.66%
+   lift acc 0.193  knee_rel 0.8750000000000004  curve: 0.018 0.027 0.034 0.039 0.043 0.047 0.049 0.052 0.052 0.053 0.069 0.292
+== tarzan taz normal LOOP.wav  44100 Hz 2 ch 75 s lsb 3.1e-05  -> clip, soft knee 0.75  flagged 14.52%  (7s)
+   ch0+: clip     theta  -2.00 dBFS  peak  -2.00  sig/th 0.0000  long 0.91 flat 1.00  bump     4.3  touches 4007 (53.7/s)  knee -2.50 dB  flagged 7.81%
+   ch0-: clip     theta  -2.00 dBFS  peak  -2.00  sig/th 0.0000  long 0.86 flat 1.00  bump    91.3  touches 3901 (52.2/s)  knee -2.50 dB  flagged 7.40%
+   ch1+: clip     theta  -2.00 dBFS  peak  -2.00  sig/th 0.0000  long 0.89 flat 0.98  bump     8.5  touches 4461 (59.7/s)  knee -2.50 dB  flagged 7.08%
+   ch1-: clip     theta  -2.00 dBFS  peak  -2.00  sig/th 0.0000  long 0.84 flat 1.00  bump    76.1  touches 3860 (51.7/s)  knee -2.50 dB  flagged 6.75%
+   lift acc 0.850  knee_rel 0.7500000000000002  curve: 0.011 0.019 0.025 0.029 0.034 0.040 0.048 0.061 0.082 0.116 0.182 0.390
+== All Is Fair In Love And Brostep.flac  44100 Hz 2 ch 249 s lsb 1.2e-07  -> limiter, limiter knee 0.50  flagged 19.49%  (9s)
+   ch0+: limiter  theta  -0.01 dBFS  peak  -0.01  sig/th 0.0004  long 0.03 flat 0.89  bump    94.9  touches 26892 (108.0/s)  knee -6.02 dB  flagged 9.64%
+   ch0-: limiter  theta  -0.01 dBFS  peak  -0.01  sig/th 0.0006  long 0.03 flat 0.85  bump   318.0  touches 27988 (112.4/s)  knee -6.02 dB  flagged 9.61%
+   ch1+: limiter  theta  -0.01 dBFS  peak  -0.01  sig/th 0.0006  long 0.04 flat 0.86  bump   350.6  touches 32264 (129.6/s)  knee -6.02 dB  flagged 9.88%
+   ch1-: limiter  theta  -0.01 dBFS  peak  -0.01  sig/th 0.0004  long 0.03 flat 0.88  bump   102.7  touches 31603 (126.9/s)  knee -6.02 dB  flagged 9.85%
+   lift acc -0.012  knee_rel None  curve: 0.012 0.023 0.032 0.039 0.042 0.044 0.045 0.042 0.041 0.040 0.035 0.048
+== Bangarang.flac  44100 Hz 2 ch 215 s lsb 3.1e-05  -> limiter, limiter knee 0.50  flagged 22.11%  (9s)
+   ch0+: limiter  theta  -0.00 dBFS  peak  -0.00  sig/th 0.0006  long 0.00 flat 0.11  bump    96.2  touches 36848 (171.2/s)  knee -6.02 dB  flagged 11.21%
+   ch0-: limiter  theta  -0.00 dBFS  peak   0.00  sig/th 0.0006  long 0.00 flat 0.06  bump   162.7  touches 35944 (167.0/s)  knee -6.02 dB  flagged 11.16%
+   ch1+: limiter  theta  -0.00 dBFS  peak  -0.00  sig/th 0.0005  long 0.00 flat 0.12  bump    48.1  touches 32067 (149.0/s)  knee -6.02 dB  flagged 10.93%
+   ch1-: limiter  theta  -0.00 dBFS  peak   0.00  sig/th 0.0005  long 0.00 flat 0.05  bump    88.5  touches 31649 (147.0/s)  knee -6.02 dB  flagged 10.92%
+   lift acc -0.167  knee_rel None  curve: 0.030 0.049 0.065 0.080 0.091 0.101 0.113 0.124 0.137 0.136 0.127 0.065
+== Goin' In (Skrillex Goin Down Remix).flac  44100 Hz 2 ch 218 s lsb 3.1e-05  -> limiter, limiter knee 0.50  flagged 21.61%  (9s)
+   ch0+: limiter  theta  -4.00 dBFS  peak  -4.00  sig/th 0.0003  long 0.00 flat 0.13  bump    41.7  touches 35201 (161.6/s)  knee -6.02 dB  flagged 10.82%
+   ch0-: limiter  theta  -4.00 dBFS  peak  -4.00  sig/th 0.0002  long 0.00 flat 0.21  bump    43.4  touches 34467 (158.3/s)  knee -6.02 dB  flagged 10.88%
+   ch1+: limiter  theta  -4.00 dBFS  peak  -4.00  sig/th 0.0003  long 0.00 flat 0.15  bump    42.9  touches 34489 (158.4/s)  knee -6.02 dB  flagged 10.78%
+   ch1-: limiter  theta  -4.00 dBFS  peak  -4.00  sig/th 0.0003  long 0.00 flat 0.23  bump    42.0  touches 34276 (157.4/s)  knee -6.02 dB  flagged 10.74%
+   lift acc 0.055  knee_rel None  curve: 0.045 0.068 0.090 0.112 0.132 0.144 0.144 0.140 0.130 0.118 0.106 0.061
+== Goin' In (Skrillex Goin Hard Remix).flac  44100 Hz 2 ch 240 s lsb 3.1e-05  -> limiter, limiter knee 0.50  flagged 22.60%  (9s)
+   ch0+: limiter  theta  -4.30 dBFS  peak  -4.30  sig/th 0.0004  long 0.00 flat 0.10  bump    44.5  touches 36657 (152.7/s)  knee -6.02 dB  flagged 11.17%
+   ch0-: limiter  theta  -4.30 dBFS  peak  -4.30  sig/th 0.0004  long 0.00 flat 0.12  bump    44.5  touches 37812 (157.5/s)  knee -6.02 dB  flagged 11.18%
+   ch1+: limiter  theta  -4.30 dBFS  peak  -4.29  sig/th 0.0005  long 0.00 flat 0.11  bump    76.7  touches 43922 (183.0/s)  knee -6.02 dB  flagged 11.40%
+   ch1-: limiter  theta  -4.30 dBFS  peak  -4.30  sig/th 0.0005  long 0.00 flat 0.08  bump    90.1  touches 40976 (170.7/s)  knee -6.02 dB  flagged 11.46%
+   lift acc -0.067  knee_rel None  curve: 0.064 0.097 0.121 0.134 0.144 0.153 0.161 0.164 0.165 0.159 0.148 0.086
+== Purple Lamborghini.wav  44100 Hz 2 ch 216 s lsb 3.1e-05  -> limiter, limiter knee 0.50  flagged 22.26%  (9s)
+   ch0+: limiter  theta  -0.00 dBFS  peak  -0.00  sig/th 0.0005  long 0.02 flat 0.54  bump    31.9  touches 18970 (88.0/s)  knee -6.02 dB  flagged 11.30%
+   ch0-: limiter  theta  -0.00 dBFS  peak  -0.00  sig/th 0.0005  long 0.02 flat 0.66  bump    60.6  touches 19013 (88.2/s)  knee -6.02 dB  flagged 11.04%
+   ch1+: limiter  theta  -0.00 dBFS  peak  -0.00  sig/th 0.0007  long 0.03 flat 0.48  bump   107.9  touches 16731 (77.6/s)  knee -6.02 dB  flagged 11.22%
+   ch1-: limiter  theta  -0.00 dBFS  peak  -0.00  sig/th 0.0006  long 0.03 flat 0.63  bump   143.6  touches 16678 (77.4/s)  knee -6.02 dB  flagged 10.97%
+   lift acc -0.147  knee_rel None  curve: 0.045 0.079 0.103 0.119 0.129 0.138 0.153 0.162 0.171 0.168 0.150 0.127
+== OWSLA 3.wav  44100 Hz 2 ch 35 s lsb 1.0e-07  -> smeared, soft knee 0.50  flagged 20.18%  (6s)
+   ch0+: smeared  theta   0.17 dBFS  peak   0.91  sig/th 0.0406  long 0.00 flat 0.00  bump     0.0  touches 4625 (131.5/s)  knee -6.02 dB  flagged 9.73%
+   ch0-: smeared  theta   0.37 dBFS  peak   1.03  sig/th 0.0297  long 0.00 flat 0.00  bump     0.0  touches 3570 (101.5/s)  knee -6.02 dB  flagged 9.78%
+   ch1+: smeared  theta   0.17 dBFS  peak   0.97  sig/th 0.0425  long 0.00 flat 0.00  bump     0.0  touches 5107 (145.2/s)  knee -6.02 dB  flagged 10.44%
+   ch1-: smeared  theta   0.28 dBFS  peak   1.00  sig/th 0.0335  long 0.00 flat 0.00  bump     0.0  touches 4508 (128.1/s)  knee -6.02 dB  flagged 10.40%
+   lift acc 0.212  knee_rel 0.5  curve: 0.015 0.028 0.041 0.052 0.064 0.078 0.092 0.112 0.136 0.163 0.188 0.201
+== Mothership Teaser.wav  44100 Hz 2 ch 136 s lsb 1.0e-07  -> smeared  flagged 3.05%  (6s)
+   ch0+: smeared  theta  -0.01 dBFS  peak   1.79  sig/th 0.0272  long 0.00 flat 0.00  bump     0.0  touches 11946 (87.9/s)  knee -1.55 dB  flagged 1.53%
+   ch0-: smeared  theta  -0.00 dBFS  peak   1.66  sig/th 0.0278  long 0.00 flat 0.00  bump     0.0  touches 12118 (89.1/s)  knee -1.59 dB  flagged 1.56%
+   ch1+: smeared  theta  -0.01 dBFS  peak   2.01  sig/th 0.0271  long 0.00 flat 0.00  bump     0.0  touches 11817 (86.9/s)  knee -1.54 dB  flagged 1.51%
+   ch1-: smeared  theta  -0.01 dBFS  peak   1.42  sig/th 0.0266  long 0.00 flat 0.00  bump     0.0  touches 11659 (85.8/s)  knee -1.51 dB  flagged 1.49%
+   lift acc -0.034  knee_rel None  curve: 0.020 0.047 0.068 0.085 0.101 0.112 0.125 0.134 0.142 0.151 0.160 0.168
+== 17 - Petal Dance -6dB AL-1.wav  44100 Hz 2 ch 93 s lsb 1.2e-07  -> limiter, limiter knee 0.50  flagged 15.39%  (6s)
+   ch0+: limiter  theta  -6.10 dBFS  peak  -6.00  sig/th 0.0010  long 0.14 flat 0.10  bump     4.7  touches 4389 (47.4/s)  knee -6.02 dB  flagged 9.86%
+   ch0-: limiter  theta  -6.10 dBFS  peak  -6.05  sig/th 0.0010  long 0.10 flat 0.14  bump     6.4  touches 3646 (39.3/s)  knee -6.02 dB  flagged 9.77%
+   ch1+: limiter  theta  -6.07 dBFS  peak  -5.99  sig/th 0.0010  long 0.00 flat 0.05  bump     5.4  touches 1752 (18.9/s)  knee -6.02 dB  flagged 5.65%
+   ch1-: limiter  theta  -6.08 dBFS  peak  -6.03  sig/th 0.0010  long 0.03 flat 0.11  bump     5.1  touches 1576 (17.0/s)  knee -6.02 dB  flagged 5.51%
+   lift acc 0.166  knee_rel 0.8000000000000003  curve: 0.020 0.033 0.042 0.047 0.050 0.053 0.054 0.055 0.058 0.062 0.075 0.096
+== 17 - Petal Dance -6dB HARD.wav  44100 Hz 2 ch 93 s lsb 1.2e-07  -> clip  flagged 1.26%  (6s)
+   ch0+: clip     theta  -6.00 dBFS  peak  -6.00  sig/th 0.0003  long 0.92 flat 1.00  bump   165.1  touches 5146 (55.5/s)  knee +0.00 dB  flagged 1.03%
+   ch0-: clip     theta  -6.00 dBFS  peak  -6.00  sig/th 0.0002  long 0.94 flat 1.00  bump    54.6  touches 4437 (47.9/s)  knee +0.00 dB  flagged 0.94%
+   ch1+: clip     theta  -6.00 dBFS  peak  -6.00  sig/th 0.0003  long 0.81 flat 0.99  bump   171.7  touches 2355 (25.4/s)  knee +0.00 dB  flagged 0.29%
+   ch1-: clip     theta  -6.00 dBFS  peak  -6.00  sig/th 0.0003  long 0.84 flat 0.99  bump   126.5  touches 2033 (21.9/s)  knee +0.00 dB  flagged 0.26%
+   lift acc -0.001  knee_rel None  curve: 0.020 0.033 0.042 0.047 0.050 0.053 0.053 0.054 0.054 0.052 0.050 0.162
+== Forest - normal.wav  44100 Hz 2 ch 121 s lsb 3.1e-05  -> none  flagged 0.00%  (5s)
+   ch0+: none     theta  -0.73 dBFS  peak  -0.54  sig/th 0.0000  long 0.00 flat 0.00  bump     1.2  touches 80 (0.7/s)  knee -  flagged 0.00%
+   ch0-: none     theta  -0.40 dBFS  peak  -0.09  sig/th 0.0000  long 0.00 flat 0.00  bump     1.2  touches 120 (1.0/s)  knee -  flagged 0.00%
+   ch1+: none     theta  -0.68 dBFS  peak  -0.51  sig/th 0.0000  long 0.00 flat 0.00  bump     4.4  touches 108 (0.9/s)  knee -  flagged 0.00%
+   ch1-: none     theta  -0.39 dBFS  peak  -0.08  sig/th 0.0000  long 0.00 flat 0.00  bump     2.5  touches 142 (1.2/s)  knee -  flagged 0.00%
+   lift acc 0.356  knee_rel None  curve: 0.011 0.019 0.023 0.026 0.030 0.031 0.031 0.030 0.034 0.034 0.060 0.112
+== SPACELLEX - SLICE N DICE.wav  44100 Hz 2 ch 109 s lsb 1.2e-07  -> limiter, limiter knee 0.50  flagged 6.95%  (6s)
+   ch0+: limiter  theta  -0.00 dBFS  peak  -0.00  sig/th 0.0010  long 0.21 flat 0.51  bump     3.1  touches 4003 (36.8/s)  knee -6.02 dB  flagged 13.89%
+   ch0-: none     theta  -0.00 dBFS  peak  -0.00  sig/th 0.0000  long 0.00 flat 0.00  bump     0.1  touches 387 (3.6/s)  knee -  flagged 0.00%
+   ch1+: none     theta  -0.00 dBFS  peak  -0.00  sig/th 0.0000  long 0.00 flat 0.00  bump     0.4  touches 477 (4.4/s)  knee -  flagged 0.00%
+   ch1-: none     theta  -0.00 dBFS  peak  -0.00  sig/th 0.0000  long 0.00 flat 0.00  bump     0.2  touches 420 (3.9/s)  knee -  flagged 0.00%
+   lift acc -0.077  knee_rel None  curve: 0.037 0.065 0.095 0.119 0.142 0.166 0.185 0.210 0.233 0.242 0.251 0.306
+== scar_tissue-cd.wav  44100 Hz 2 ch 96 s lsb 3.1e-05  -> clip  flagged 1.10%  (6s)
+   ch0+: clip     theta  -6.12 dBFS  peak  -6.02  sig/th 0.0004  long 0.73 flat 0.99  bump   114.8  touches 7179 (75.0/s)  knee +0.00 dB  flagged 0.67%
+   ch0-: clip     theta  -6.12 dBFS  peak  -6.02  sig/th 0.0010  long 0.72 flat 0.98  bump    67.2  touches 6713 (70.2/s)  knee +0.00 dB  flagged 0.49%
+   ch1+: clip     theta  -6.12 dBFS  peak  -6.10  sig/th 0.0004  long 0.74 flat 0.99  bump   103.0  touches 6911 (72.2/s)  knee +0.00 dB  flagged 0.63%
+   ch1-: clip     theta  -6.12 dBFS  peak  -6.12  sig/th 0.0010  long 0.68 flat 0.98  bump    50.4  touches 6415 (67.0/s)  knee +0.00 dB  flagged 0.41%
+   lift acc -0.008  knee_rel None  curve: 0.020 0.037 0.051 0.060 0.064 0.066 0.066 0.065 0.062 0.060 0.056 0.140
+== greenday-cd.wav  44100 Hz 2 ch 174 s lsb 3.1e-05  -> smeared, soft knee 0.83  flagged 3.63%  (7s)
+   ch0+: smeared  theta  -8.32 dBFS  peak  -8.30  sig/th 0.0005  long 0.75 flat 0.39  bump    53.9  touches 7395 (42.4/s)  knee -1.67 dB  flagged 2.00%
+   ch0-: smeared  theta  -8.30 dBFS  peak  -8.29  sig/th 0.0005  long 0.67 flat 0.38  bump    35.3  touches 5998 (34.4/s)  knee -1.67 dB  flagged 1.85%
+   ch1+: smeared  theta  -8.32 dBFS  peak  -8.29  sig/th 0.0005  long 0.77 flat 0.38  bump    52.4  touches 6082 (34.9/s)  knee -1.67 dB  flagged 1.79%
+   ch1-: smeared  theta  -8.31 dBFS  peak  -8.30  sig/th 0.0005  long 0.68 flat 0.36  bump    31.8  touches 4893 (28.1/s)  knee -1.67 dB  flagged 1.63%
+   lift acc 0.190  knee_rel 0.8250000000000004  curve: 0.024 0.043 0.056 0.061 0.063 0.062 0.061 0.060 0.060 0.064 0.076 0.163
+== metallica-cd.wav  44100 Hz 2 ch 476 s lsb 3.1e-05  -> smeared, soft knee 0.68  flagged 27.36%  (12s)
+   ch0+: smeared  theta -11.03 dBFS  peak  -9.61  sig/th 0.0578  long 0.00 flat 0.00  bump     0.0  touches 343662 (721.6/s)  knee -3.70 dB  flagged 13.77%
+   ch0-: smeared  theta -10.96 dBFS  peak  -9.61  sig/th 0.0562  long 0.00 flat 0.00  bump     1.8  touches 309361 (649.6/s)  knee -3.57 dB  flagged 12.73%
+   ch1+: smeared  theta -11.05 dBFS  peak  -9.61  sig/th 0.0589  long 0.00 flat 0.00  bump     0.0  touches 339372 (712.6/s)  knee -3.79 dB  flagged 14.48%
+   ch1-: smeared  theta -11.02 dBFS  peak  -9.61  sig/th 0.0589  long 0.00 flat 0.00  bump     1.8  touches 312169 (655.5/s)  knee -3.79 dB  flagged 13.75%
+   lift acc 0.135  knee_rel 0.6750000000000003  curve: 0.035 0.051 0.067 0.081 0.092 0.102 0.120 0.160 0.227 0.271 0.293 0.297

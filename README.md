@@ -31,22 +31,26 @@ and the example's source, 44.1 and 48 kHz) were processed in 15 mastering-style 
 restorations were compared with the unprocessed originals (`research/master/`). Mean SDR over the 7
 excerpts, `fast` preset:
 
-| processing | input | old `auto` | new `auto` | best fixed setting* |
-|------------|-------|------------|------------|---------------------|
+| processing | input | old `auto` | `auto` | best fixed setting* |
+|------------|-------|------------|--------|---------------------|
 | hard clip -6 / -9 dB | 20.1 / 13.1 | 30.1 / 22.8 | **30.1 / 22.8** | 30.4 / 23.0 |
 | soft shoulder + hard ceiling (2 kinds) | 19.9 / 13.1 | 24.8 / 20.2 | **27.2 / 21.9** | 27.8 / 22.1 |
 | tanh saturation (2 kinds) | 19.0 / 12.2 | 19.5 / 13.8 | **26.4 / 19.2** | 26.5 / 19.6 |
 | cubic saturation | 17.5 | 17.8 | **21.7** | 22.4 |
-| 4x oversampled clipper | 20.1 | 20.3 | **29.7** | 30.1 |
-| hard clip, then resampled to 48 kHz | 20.1 | 22.1 | **30.0** | 30.0 |
+| 4x oversampled clipper | 20.1 | 20.3 | **29.6** | 30.1 |
+| hard clip, then resampled to 48 kHz | 20.1 | 22.1 | **29.9** | 30.0 |
 | hard clip, then MP3 128k / AAC 256k / Vorbis 192k | 16.7 / 17.6 / 19.4 | 17.1 / 19.4 / 21.5 | **19.8 / 21.8 / 24.8** | 19.9 / 22.2 / 24.9 |
-| AL-1 limiter / OS clip + AL-1 / slow AL-1 | 15.1 / 7.6 / 4.5 | 15.1 / 7.6 / 4.5 | **16.6 / 8.8 / 4.6** | 17.0 / 9.6 / 4.6 |
-| **all 105 cases** | 15.7 | 18.4 | **21.7** | 22.0 |
+| AL-1 limiter / OS clip + AL-1 / slow AL-1 | 15.1 / 7.6 / 4.5 | 15.1 / 7.6 / 4.5 | 15.1 / 7.6 / 4.5 | 17.0 / 9.6 / 4.6 |
+| ... with `--mode limiter` (experimental) | | | 16.6 / 8.8 / 4.6 | |
+| **all 105 cases** | 15.7 | 18.4 | **21.5** | 22.0 |
 
 \* the best of all tried constraint settings for each case, chosen with the ground truth (not available
-in practice). The new `auto` is never worse than the old one, and on average 0.3 dB from that choice.
-Limiters remain the hardest case: their gain dips could be undone (+5 to +10 dB with the right
-depth per limiter event), but no blind estimate of the depths was found yet (`research/LOG.md`).
+in practice). `auto` is never worse than the old one (by more than 0.01 dB). On the AL-1 limiter
+renders it deliberately restores almost nothing: a limiter's gain riding leaves no clipping in the
+waveform. Guessing it back (`--mode limiter`) scores 1-2 dB higher on these renders, but on real
+limited masters it was heard to reshape clean peaks and add distortion. The gain dips could only be
+undone properly with the right depth per limiter event (+5 to +10 dB), and no blind estimate of the
+depths has been found yet (`research/LOG.md`).
 
 ## Usage
 
@@ -66,26 +70,34 @@ python -m betterdeclipper in.wav out.wav --format pcm24 --normalize -0.1
 - Any sample rate works (window lengths are defined in milliseconds).
 - `--clip-level` forces a hard-clip level, and `--knee` forces a soft-clip knee (both skip the analysis).
 - **Modes** (`--mode`, default `auto`). `auto` first analyzes how the master was clipped or limited,
-  separately per channel and polarity:
+  separately per channel and polarity, prints what it found, and restores only what shows signs of
+  clipping damage:
   - **clip**: a flat plateau (digital clipping, possibly dithered). Restored samples must lie beyond it.
-  - **limiter**: a ceiling that is only touched by isolated samples (brickwall / look-ahead limiter,
-    often after a clipper, as in most loud EDM masters). A soft region from 0.5 x ceiling is added:
-    fast limiters reshape the whole crest, not just the touching samples.
   - **smeared**: a blurred plateau with overshoots above it: clipped audio that was then lossy-encoded
     (MP3/AAC/Vorbis), resampled, or clipped by an oversampled clipper. Samples above
     `ceiling - 6 x blur` are restored, and overshoots are not forced upwards.
-  - **soft shoulder**: soft clipping or saturation below the ceiling (or without any ceiling). A quick
-    first pass measures how much the restoration lifts each level; real compression makes that lift
-    accelerate towards the ceiling, and the knee is placed where the acceleration starts.
+  - **limiter**: a ceiling that is only touched by isolated samples (brickwall / look-ahead limiter).
+    Only flat runs of 2+ samples at the ceiling (clipping after the limiter) are restored. A limiter's
+    gain riding is not waveform damage, and guessing it back reshapes cleanly limited peaks (audibly,
+    e.g. on kicks), so the crest below a limiter ceiling is kept as it is.
+  - **soft shoulder**: soft clipping or saturation below a clip or smeared ceiling, or without any
+    ceiling (then on stronger evidence). A quick first pass measures how much the restoration lifts
+    each level; real waveshaping makes that lift accelerate towards the ceiling, and the knee is placed
+    where the acceleration starts. When there is no ceiling and the sign is only weak, the file is left
+    as it is and the printout says so (`--mode soft` if it still sounds squashed).
 
   Every sample above the knee may only grow (`|x| >= |y|`, and `|x| >= ceiling` on the plateau);
   everything below it is kept exactly. `hard` uses only the ceilings (no soft region), `soft` always
-  adds one (knee from the first pass, or 0.8 x ceiling), `legacy` is the previous detection.
+  adds one (knee from the first pass, or 0.8 x ceiling, also below limiter ceilings), `legacy` is the
+  previous detection.
+- `--mode limiter` is **experimental**: `auto` plus a soft region from 0.5 x ceiling below limiter
+  ceilings. It raises SDR on synthetic limiter tests (see the AL-1 row above), but on real limited
+  masters it reshapes peaks the limiter had left clean, removes intended distortion and can add new
+  distortion, so `auto` does not use it.
 - `--max-gain DB` is an optional safety cap. Restored samples may exceed the clip level by at most
   DB decibels, and the cap is part of the constraints, so peaks stay smooth. It is off by default for
   clipping (in the example the true peaks are 11.8 dB above the clip level); under limiter ceilings a
-  +9 dB cap is applied automatically, since limiters rarely take more than 6-9 dB and deliberately
-  square-clipped sounds under a limiter would otherwise be over-restored.
+  +9 dB cap is applied automatically.
 
 Presets (each averages structurally different models):
 
@@ -145,11 +157,11 @@ GPU memory use is under 2 GB. What makes it fast:
    the ceiling and how blurred it is (dither ~0.03 %, resampling/oversampling ~0.2-0.5 %, lossy codecs
    1-6 %). Runs of samples at the ceiling tell clipping (long flat runs), oversampled clipping (long
    rippled runs) and limiting (isolated touches) apart. A quick first restoration with a low knee
-   measures the lift per level; it only accelerates towards the ceiling under real compression, which
-   places the soft-shoulder knee.
+   measures the lift per level; it only accelerates towards the ceiling under real waveshaping, which
+   places the soft-shoulder knee (not searched below limiter ceilings).
 2. **Consistency**. Samples below the knee are kept exactly. Samples above it may only grow, with their
    sign: `|x| >= min(|y|, ceiling)`, so plateau samples lie beyond the ceiling and overshoots of lossy
-   codecs are not forced upward.
+   codecs are not forced upward. At limiter ceilings only flat runs of 2+ samples count as clipped.
 3. **Restoration models**. Each one finds a consistent signal that fits a prior of the time-frequency (TF) coefficients:
    - *NMF-PnP* (`methods/pnp.py`, strongest single model): plug-and-play iterations
      `x <- Wiener_V(P_consistent(x))`, where the Wiener gain `V/(V+lambda^2)` uses a low-rank

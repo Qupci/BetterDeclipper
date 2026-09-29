@@ -166,8 +166,9 @@ def declip(y, sr, preset="normal", levels=None, chunk_s=20.0, ctx_s=1.5, fade_s=
 
     mode: 'auto' (analyze the ceilings: clip plateau, limiter, smeared (lossy/resampled) ceiling, soft
     shoulder -> matching constraints, see auto.py), 'hard' (ceilings only, no soft shoulder), 'soft' (always
-    add a soft region below the ceiling; knee from the first pass or 0.8 x ceiling), 'legacy' (the
-    previous plateau-or-knee logic). Explicit `levels` (clip levels) or `knees` override the analysis.
+    add a soft region below the ceiling; knee from the first pass or 0.8 x ceiling), 'limiter' (experimental:
+    auto + soft region below limiter ceilings), 'legacy' (the previous plateau-or-knee logic). Explicit
+    `levels` (clip levels) or `knees` override the analysis.
     device: 'auto' (CUDA GPU if available, else CPU), 'cpu', 'cuda' or 'cuda:N'."""
     t_start = time.time()
     if threads:
@@ -186,7 +187,7 @@ def declip(y, sr, preset="normal", levels=None, chunk_s=20.0, ctx_s=1.5, fade_s=
         m_hi, m_lo, th_hi, th_lo = constraints[:4]
         gcap = constraints[4] if len(constraints) > 4 else None
         used_mode = "custom"
-    elif mode in ("auto", "hard", "soft") and levels is None and knees is None:
+    elif mode in ("auto", "hard", "soft", "limiter") and levels is None and knees is None:
         # ceiling analysis (clip plateau / limiter / smeared ceiling) + soft-shoulder knee (first pass)
         def run_fast(yy, cons):  # analysis pass: 80 NMF iterations give the same knees as 150
             xx, _ = declip(yy, sr, models=[("nmf", 93, dict(n_iter=80))], constraints=cons, device=device,
@@ -219,7 +220,8 @@ def declip(y, sr, preset="normal", levels=None, chunk_s=20.0, ctx_s=1.5, fade_s=
         gcap = g if gcap is None else np.minimum(gcap, g)
     clipped = m_hi | m_lo
     info = dict(levels=levels, clipped_frac=float(clipped.mean()), lsb=lsb, preset=preset, mode=used_mode,
-                device=str(device), analysis=auto_report)
+                device=str(device), analysis=auto_report,
+                flagged=[(float(m_hi[:, c].mean()), float(m_lo[:, c].mean())) for c in range(C)])
     if not clipped.any():
         info["time"] = time.time() - t_start
         return (y[:, 0] if mono else y), info

@@ -13,3 +13,4 @@ __pycache__/
 .venv/
 research/results/venv_install.log
 ex_master/
+ex_strange/

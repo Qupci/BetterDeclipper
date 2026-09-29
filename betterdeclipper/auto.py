@@ -107,7 +107,10 @@ def analyze_ceilings(y, lsb, sr=44100):
 
 def ceiling_constraints(y, refs, knees, lsb, tol_lsb=2.0):
     """refs from analyze_ceilings; knees[c][p]: knee level (amplitude) or None (polarity not flagged).
-    Returns m_hi, m_lo, th_hi, th_lo (T, C): flagged masks and per-sample lower bounds on |x| (signed)."""
+    Returns m_hi, m_lo, th_hi, th_lo (T, C): flagged masks and per-sample lower bounds on |x| (signed).
+    At a limiter ceiling (knee at the ceiling) only flat plateaus of >= 2 samples are flagged (the evidence
+    of clipping): single samples touching it are what a limiter's smooth gain produces anyway, and freeing
+    them only invites spikes."""
     T, C = y.shape
     m_hi = np.zeros((T, C), bool); m_lo = np.zeros((T, C), bool)
     th_hi = np.full((T, C), np.inf); th_lo = np.full((T, C), -np.inf)
@@ -120,6 +123,9 @@ def ceiling_constraints(y, refs, knees, lsb, tol_lsb=2.0):
                 continue
             s = sg * y[:, c]
             fl = s >= k
+            if r["kind"] == "limiter" and k >= 0.99 * r["theta"]:
+                pair = fl[1:] & fl[:-1] & (np.abs(np.diff(s)) <= max(3 * max(lsb, 1e-7), 1e-4 * r["theta"]))
+                fl = np.concatenate([pair, [False]]) | np.concatenate([[False], pair])
             lbv = np.minimum(s, r["theta"])
             if r["kind"] != "clip":
                 lbv = lbv - tol          # quantization tolerance where |x| >= |y| is used
@@ -148,21 +154,23 @@ def base_knees(refs, smear_c=SMEAR_C):
 
 # ---- soft-shoulder knee from a first restoration pass ------------------------------------------------
 RAISE_K0 = 0.4                                   # first pass: flag everything above 0.4 x ceiling
-LIMITER_KNEE = 0.5     # soft region below limiter ceilings (fraction of the ceiling)
+LIMITER_KNEE = 0.5     # experimental mode 'limiter': soft region below limiter ceilings (fraction of the ceiling)
 LIMITER_MAX_GAIN_DB = 9.0  # restoration cap under limiter ceilings (x observed value / ceiling)
 KNEE_MIN = 0.5         # lowest soft knee (the first pass cannot see compression below ~0.45 x ceiling)
 ACC_MIN_CEIL = 0.1     # min. acceleration of the lift curve for a shoulder below a detected ceiling
 ACC_MIN_FREE = 0.45    # ... when no ceiling was found (unclipped sources reached 0.31, tanh >= 1.16)
+ACC_HINT_FREE = 0.25   # no ceiling, acceleration between this and ACC_MIN_FREE: reported as a weak sign only
 RAISE_LV = np.arange(0.45, 1.0001, 0.025)        # level grid (fraction of the ceiling)
 
 
-def raise_curve(y, x, refs, lv=RAISE_LV, w=0.025):
-    """Median lift |x|/|y| - 1 of the first-pass restoration per level bin (levels relative to theta)."""
+def raise_curve(y, x, refs, lv=RAISE_LV, w=0.025, use=None):
+    """Median lift |x|/|y| - 1 of the first-pass restoration per level bin (levels relative to theta).
+    use[c][p]: optional mask of the polarities to include."""
     a_all, r_all = [], []
     for c in range(y.shape[1]):
         for pi, sg in enumerate((1.0, -1.0)):
             th = refs[c][pi]["theta"]
-            if th is None:
+            if th is None or (use is not None and not use[c][pi]):
                 continue
             s = sg * y[:, c]; xs = sg * x[:, c]
             m = s > 0.4 * th
@@ -178,13 +186,9 @@ def raise_curve(y, x, refs, lv=RAISE_LV, w=0.025):
     return cur
 
 
-def knee_from_raise(cur, lv=RAISE_LV, frac=0.1, acc_min=0.1, top=0.95):
-    """Soft-shoulder knee (fraction of theta) or None from the first-pass lift curve.
-
-    Freed but uncompressed samples are lifted by a bias that grows with level and then flattens; real
-    compression makes the curve accelerate towards the ceiling. The knee is where the slope of the
-    (smoothed) curve has risen by `frac` of its total rise above its minimum; no knee when the slope near
-    the top exceeds the minimum by less than acc_min (lift per unit level)."""
+def _lift_slopes(cur, lv=RAISE_LV, top=0.95):
+    """slopes of the smoothed lift curve up to `top`, their levels, the index of the minimum slope and the
+    acceleration (mean slope of the top two levels minus the minimum slope), or None if too few points"""
     ok = np.isfinite(cur) & (lv <= top + 1e-9)
     c = np.asarray(cur)[ok]; l = lv[ok]
     if c.size < 6:
@@ -192,9 +196,29 @@ def knee_from_raise(cur, lv=RAISE_LV, frac=0.1, acc_min=0.1, top=0.95):
     cs = np.convolve(np.pad(c, 1, mode="edge"), np.ones(3) / 3, "valid")
     sl = np.gradient(cs, l)
     i0 = int(np.argmin(sl[: max(2, len(sl) - 3)]))
-    s_top = sl[-2:].mean()
-    if s_top - sl[i0] < acc_min:
+    return sl, l, i0, float(sl[-2:].mean() - sl[i0])
+
+
+def lift_acceleration(cur, lv=RAISE_LV, top=0.95):
+    """How much the first-pass lift curve accelerates towards the ceiling (NaN if undetermined)."""
+    r = _lift_slopes(cur, lv, top)
+    return float("nan") if r is None else r[3]
+
+
+def knee_from_raise(cur, lv=RAISE_LV, frac=0.1, acc_min=0.1, top=0.95):
+    """Soft-shoulder knee (fraction of theta) or None from the first-pass lift curve.
+
+    Freed but uncompressed samples are lifted by a bias that grows with level and then flattens; real
+    compression makes the curve accelerate towards the ceiling. The knee is where the slope of the
+    (smoothed) curve has risen by `frac` of its total rise above its minimum; no knee when the slope near
+    the top exceeds the minimum by less than acc_min (lift per unit level)."""
+    r = _lift_slopes(cur, lv, top)
+    if r is None:
         return None
+    sl, l, i0, acc = r
+    if acc < acc_min:
+        return None
+    s_top = sl[i0] + acc
     thr = sl[i0] + frac * (s_top - sl[i0])
     after = np.flatnonzero((np.arange(len(sl)) >= i0) & (sl >= thr))
     if after.size == 0 or l[after[0]] >= 0.975:
@@ -205,7 +229,7 @@ def knee_from_raise(cur, lv=RAISE_LV, frac=0.1, acc_min=0.1, top=0.95):
 SOFT_DEFAULT_KNEE = 0.8   # --mode soft when the first pass finds no shoulder (fraction of the ceiling)
 
 
-def _loud_windows(y, refs, sr, win_s=10.0, total_s=60.0):
+def _loud_windows(y, refs, sr, win_s=10.0, total_s=60.0, use=None):
     """Non-overlapping windows (start, end) with the most samples near the ceilings, up to total_s."""
     T = y.shape[0]
     W = int(win_s * sr)
@@ -215,7 +239,7 @@ def _loud_windows(y, refs, sr, win_s=10.0, total_s=60.0):
     for c in range(y.shape[1]):
         for pi, sg in enumerate((1.0, -1.0)):
             th = refs[c][pi]["theta"]
-            if th is not None:
+            if th is not None and (use is None or use[c][pi]):
                 near += sg * y[:, c] >= 0.7 * th
     n = T // W
     score = near[: n * W].reshape(n, W).sum(1)
@@ -223,41 +247,60 @@ def _loud_windows(y, refs, sr, win_s=10.0, total_s=60.0):
     return [(int(i) * W, int(i + 1) * W) for i in pick]
 
 
+MODES = ("auto", "hard", "soft", "limiter")
+
+
 def auto_constraints(y, lsb, run_fast, mode="auto", sr=44100):
     """Analyze the ceilings and build the constraint set. run_fast(y, constraints) -> x runs a quick
-    restoration (used for the soft-shoulder knee). mode: 'auto', 'hard' (no shoulder search) or 'soft'
-    (always a soft region). Returns (m_hi, m_lo, th_hi, th_lo, report dict)."""
+    restoration (used for the soft-shoulder knee). Returns (m_hi, m_lo, th_hi, th_lo, report dict).
+
+    mode 'auto':    clip plateaus and smeared ceilings are restored, plus the soft shoulder below them when
+                    the first pass finds one (also without any ceiling, on stronger evidence). Limiter
+                    ceilings: only flat runs of >= 2 samples at the ceiling are freed; the crest below a
+                    limiter is left as it is (gain riding is not waveform damage, and reshaping it adds
+                    audible distortion - research/LOG.md, session 5).
+    mode 'hard':    ceilings only, no soft-shoulder search.
+    mode 'soft':    always a soft region below every ceiling (knee from the first pass, else 0.8 x ceiling).
+    mode 'limiter': experimental - 'auto' plus a soft region from 0.5 x ceiling below limiter ceilings
+                    (raises SDR on synthetic limiter tests but reshapes cleanly limited peaks)."""
+    if mode not in MODES:
+        raise ValueError(f"mode must be one of {MODES}")
     refs = analyze_ceilings(y, lsb, sr)
     knees = base_knees(refs)
     kinds = sorted({r["kind"] for row in refs for r in row})
-    rep = dict(refs=refs, kinds=kinds, knee_rel=None)
-    if mode in ("auto", "soft"):
-        k0 = [[RAISE_K0 * r["theta"] if r["theta"] else None for r in row] for row in refs]
+    # polarities searched for a soft shoulder: all ceilings except limiters (unless 'soft' is forced), and
+    # polarities without a ceiling (soft saturation that never reaches a fixed level)
+    use = [[r["theta"] is not None and (r["kind"] != "limiter" or mode == "soft") for r in row] for row in refs]
+    ceil_kinds = ("clip", "smeared", "limiter") if mode == "soft" else ("clip", "smeared")
+    has_ceiling = any(r["kind"] in ceil_kinds for row in refs for r in row if r["theta"] is not None)
+    rep = dict(refs=refs, kinds=kinds, knee_rel=None, acc=None,
+               acc_min=ACC_MIN_CEIL if has_ceiling else ACC_MIN_FREE, shoulder_use=use, request=mode)
+    if mode in ("auto", "soft", "limiter") and any(any(u) for u in use):
+        k0 = [[RAISE_K0 * r["theta"] if u else None for r, u in zip(row, urow)] for row, urow in zip(refs, use)]
         ys, xs = [], []
-        for a, b in _loud_windows(y, refs, sr):   # long files: first pass on the loudest 60 s only
+        for a, b in _loud_windows(y, refs, sr, use=use):   # long files: first pass on the loudest 60 s only
             yw = y[a:b]
             ys.append(yw)
             xs.append(run_fast(yw, ceiling_constraints(yw, refs, k0, lsb)))
-        cur = raise_curve(np.concatenate(ys), np.concatenate(xs), refs)
+        cur = raise_curve(np.concatenate(ys), np.concatenate(xs), refs, use=use)
         # without any ceiling the evidence must be stronger (unclipped music can bend the curve a little)
-        kr = knee_from_raise(cur, acc_min=ACC_MIN_CEIL if any(k != "none" for k in kinds) else ACC_MIN_FREE)
+        kr = knee_from_raise(cur, acc_min=rep["acc_min"])
+        rep.update(acc=lift_acceleration(cur), raise_curve=cur, knee_found=kr is not None)
         if kr is None and mode == "soft":
             kr = SOFT_DEFAULT_KNEE
-        rep.update(knee_rel=kr, raise_curve=cur)
+        rep["knee_rel"] = kr
         if kr is not None:
-            knees = [[(kr * r["theta"] if k is None else min(k, kr * r["theta"])) if r["theta"] else None
-                      for k, r in zip(krow, row)] for krow, row in zip(knees, refs)]
-    if mode in ("auto", "soft"):
-        # limiter ceilings: fast limiting reshapes the crest well below the ceiling (AL-1: +1.6 dB on average
-        # with a 0.5 knee, never worse); slow gain riding is left unchanged by it
+            knees = [[((kr * r["theta"] if k is None else min(k, kr * r["theta"])) if u else k)
+                      for k, r, u in zip(krow, row, urow)] for krow, row, urow in zip(knees, refs, use)]
+    if mode == "limiter":
         knees = [[(min(k, LIMITER_KNEE * r["theta"]) if (r["kind"] == "limiter" and k is not None) else k)
                   for k, r in zip(krow, row)] for krow, row in zip(knees, refs)]
     rep["knees"] = knees
     main = [k for k in ("clip", "limiter", "smeared") if k in kinds]
     desc = "+".join(main or ["none"])
-    if mode in ("auto", "soft") and "limiter" in kinds:
-        desc += f", limiter knee {LIMITER_KNEE:.2f}"
-    if rep["knee_rel"] and not (set(kinds) <= {"limiter", "none"} and "limiter" in kinds):
+    if mode == "limiter" and "limiter" in kinds:
+        desc += f", limiter knee {LIMITER_KNEE:.2f} (experimental)"
+    if rep["knee_rel"] and any(any(u) for u in use):
         desc += f", soft knee {rep['knee_rel']:.2f}"
     rep["mode"] = desc
     m_hi, m_lo, th_hi, th_lo = ceiling_constraints(y, refs, knees, lsb)
@@ -265,7 +308,7 @@ def auto_constraints(y, lsb, run_fast, mode="auto", sr=44100):
     # stretches (e.g. deliberately square-clipped bass under a limiter) would otherwise be extrapolated
     # far beyond any plausible original
     rep["gcap"] = None
-    if mode in ("auto", "soft") and "limiter" in kinds:
+    if "limiter" in kinds:
         g = np.full(y.shape, np.inf)
         for c in range(y.shape[1]):
             for pi, (m, sg) in enumerate(((m_hi, 1.0), (m_lo, -1.0))):

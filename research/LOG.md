@@ -232,3 +232,48 @@ User files (normal preset, research/outputs/master_demo): Rome clip+knee 0.88, T
 All Is Fair / Bangarang / Goin' In x2 / Purple limiter (knee 0.5, ~20 % flagged), OWSLA smeared+knee 0.50,
 Mothership smeared (3.3 %), signal none (no consistent ceiling), Petal AL-1 18.96 -> 20.23 dB,
 Petal HARD 23.30 -> 34.19 dB (vs source).
+
+## Session 5 (2026-09-30): faithful auto after the listening review
+User review of session 4 (by ear): the smeared-ceiling and soft-knee handling is good (OWSLA 3 "on point",
+Rome / Tarzan), but on All Is Fair, Bangarang, Goin' In x2, Purple Lamborghini and Petal AL-1 the auto
+restoration damaged more than it restored: intended distortion reduced, undistorted samples "restored",
+new audible distortion (kicks). SPACELLEX: odd restoration of the left channel's positive side only.
+- Cause (master/report_inputs.py, results/report_inputs_v1.log): all of these were "limiter" -> 0.5 knee
+  (19-23 % flagged). Their first-pass lift acceleration is -0.17..+0.06 (no saturation evidence), so the
+  tanh/cubic soft-shoulder logic was not involved. SPACELLEX: only L+ passed the limiter hit-rate test
+  (37 touches/s vs ~4/s) -> knee on L+ only. SDR gains from the limiter knee (AL-1 +1.5 dB) came from
+  reshaping cleanly limited crests, which is audible as added distortion.
+- Even freeing only the samples touching a limiter ceiling (knee = ceiling) lifted an isolated true-peak
+  touch 0.999 -> 1.29 in SPACELLEX (a click). The touches of a clean limiter carry no clipping evidence.
+- New rule: at limiter ceilings only flat runs of >= 2 samples (steps <= max(3 LSB, 1e-4 x ceiling)) are
+  freed; no soft-shoulder search below limiter ceilings (also excluded from the first pass); the 0.5 knee
+  is the experimental --mode limiter. Flagged now: Bangarang / Goin' In ~0.00-0.01 %, All Is Fair 0.12 %
+  (real 2-3 sample clip plateaus after the limiter), SPACELLEX 0.01 %, Petal AL-1 0.0x %.
+- CLI prints a per-channel/polarity table (kind, ceiling, blur, restored-from level, flagged %), what each
+  kind means and the soft-shoulder decision with its evidence (lift acceleration vs threshold).
+- scar tissue (PAD blind example): clip (long 0.7, flat 0.99), lift curve flat up to the plateau
+  (acc -0.01) -> hard. --mode soft (0.8 knee) also lifts the limited crest below the clip (same kind of
+  guess as the limiter knee) -> not in auto. PAD itself changes 87 % of all samples on its blind
+  examples, so it is no reference for the knee.
+- Forest (Zapper CD): rounded plateaus (clip followed by smoothing without overshoot, e.g. linear
+  interpolation), no exact ceiling; lift acceleration 0.36 < 0.45 (no-ceiling threshold). Unclipped scan
+  (master/acc_scan.py, results/acc_scan_v1.log): 40 Deltarune ch5 tracks -0.08..0.27 (Flower King 0.27),
+  earlier excerpt 0.31, Forest fast 0.28 -> threshold kept. Tried and rejected as extra evidence (overlap
+  with unclipped tracks): histogram shelf excess / cutoff sharpness (master/shelf_feat.py), within-run
+  spread near the top (Forest 1.6-2.3 % vs unclipped 4-9 %, but correlated with cutoff sharpness), near-max
+  event rate (Forest 0.02-0.9/s, unclipped up to 1.1/s). The printout reports acc 0.25-0.45 without a
+  ceiling as a weak sign and suggests --mode soft.
+- Zapper tracks credits / ghost_normal pass the no-ceiling threshold (acc 0.52 / 0.71, knee 0.85):
+  0.08 / 0.29 % flagged (top samples only).
+### Benchmark after session 5 (mbench_s5.json, fast preset, summary_s5.py)
+Only limiter-related cases changed (all others within 0.005 dB of session 4):
+| degradation | input | old auto | s4 auto | s5 auto | --mode limiter |
+|---|---|---|---|---|---|
+| al1_6 / osal1 / al1slow | 15.08 / 7.56 / 4.54 | 15.09 / 7.57 / 4.54 | 16.64 / 8.79 / 4.56 | 15.08 / 7.60 / 4.54 | 16.64 / 8.79 / 4.56 |
+| oshard6 (ruder has one limiter polarity) | 20.10 | 20.31 | 29.66 | 29.58 | 29.66 |
+| all 105 | 15.73 | 18.43 | 21.68 | 21.49 | |
+s5 auto vs the pre-session-4 auto: never worse by more than 0.011 dB (knife al1_6 14.023 -> 14.012).
+User files with the session-5 auto (normal preset, research/outputs/master_demo_s5, results/demo_s5.log):
+All Is Fair 0.12 % flagged (max +3.3 dB), Bangarang / Goin' In x2 0.00 % (max +1.2..1.7 dB), Purple
+Lamborghini 0.01 % (a dozen 70-87 sample flat plateaus per channel at 0:52 / 2:23 -> up to +6.2 dB),
+Petal AL-1 0.02 % (+0.8 dB max), SPACELLEX 0.01 % (+0.2 dB max). RMS change <= 0.003 dB on all of them.
