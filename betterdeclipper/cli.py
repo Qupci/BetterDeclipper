@@ -61,8 +61,7 @@ def analysis_lines(info, C):
     if req == "hard":
         out.append("  soft shoulder: not searched (--mode hard)")
     elif acc is None:
-        out.append("  soft shoulder: not searched below limiter ceilings" if "limiter" in an["kinds"]
-                   else "  soft shoulder: nothing to search")
+        out.append("  soft shoulder: nothing to search")
     elif an.get("knee_found"):
         free = amin >= ACC_MIN_FREE
         out.append(f"  soft shoulder: yes - " + ("soft saturation without a ceiling" if free else
@@ -71,22 +70,24 @@ def analysis_lines(info, C):
                    f"{kr:.2f} x {'robust peak' if free else 'ceiling'} ({20 * np.log10(kr):+.1f} dB)")
     elif kr:
         out.append(f"  soft shoulder: none found (first-pass lift acceleration {acc:.3f} < {amin:.2f}); "
-                   f"--mode soft: knee {kr:.2f} x ceiling ({20 * np.log10(kr):+.1f} dB)")
+                   f"--mode soft: default knee {kr:.2f} x ceiling ({20 * np.log10(kr):+.1f} dB)")
     elif amin >= ACC_MIN_FREE and acc >= ACC_HINT_FREE:
         out.append(f"  soft shoulder: weak sign of saturation without a ceiling (first-pass lift acceleration "
                    f"{acc:.3f}; auto needs {amin:.2f} here, unclipped music reaches ~0.3) - left untouched; "
                    f"if it sounds squashed, try --mode soft")
     else:
-        out.append(f"  soft shoulder: none found (first-pass lift acceleration {acc:.3f} < {amin:.2f}; "
-                   f"--mode soft forces one)")
+        extra = "" if set(an["kinds"]) == {"limiter"} else "; --mode soft forces one"
+        out.append(f"  soft shoulder: none found (first-pass lift acceleration {acc:.3f} < {amin:.2f}{extra})")
     if "limiter" in an["kinds"]:
-        if req == "limiter":
-            txt = "the crest below them is restored too (experimental --mode limiter, capped at +9 dB)"
-        elif req == "soft":
-            txt = "the soft region of --mode soft applies below them too (capped at +9 dB)"
+        lk = an.get("limiter_knee")
+        if lk is None:
+            txt = "only flat plateaus (2+ samples at the ceiling) are restored (--mode hard)"
+        elif req == "limiter":
+            txt = f"soft region from {lk:.2f} x ceiling (experimental --mode limiter), capped at +9 dB"
         else:
-            txt = ("only short plateaus (2+ samples at the ceiling) are restored; single touching samples and the "
-                   "limited crest below are kept as they are (--mode limiter: experimental crest restoration)")
+            why = "the knee found above" if an.get("knee_found") else "default, no shoulder found"
+            txt = (f"soft region from {lk:.2f} x ceiling ({20 * np.log10(lk):+.1f} dB; {why}), capped at +9 dB "
+                   f"(--mode hard: flat plateaus only)")
         out.append("  limiter ceilings: " + txt)
     return out
 
@@ -126,10 +127,12 @@ def main(argv=None):
     ap.add_argument("--mode", choices=["auto", "hard", "soft", "limiter", "legacy"], default="auto",
                     help="auto (default): analyzes the master - clip plateau, limiter ceiling, smeared ceiling "
                          "(lossy codec / resampling / oversampled clipper) and soft saturation below it - and "
-                         "restores accordingly (at limiter ceilings only flat 2+ sample plateaus); hard: "
-                         "ceilings only (no soft region); soft: always add a soft region below the ceiling; "
-                         "limiter: EXPERIMENTAL, auto + also restore the crest below limiter ceilings (raises "
-                         "the measured accuracy on synthetic limiter tests but can add audible distortion); "
+                         "restores accordingly: the soft region's knee comes from a first restoration pass "
+                         "(below limiter ceilings always a soft region, 0.8 x ceiling if no knee is found); "
+                         "hard: ceilings only, no soft region; soft: the same analysis and knee, but always a "
+                         "soft region below every ceiling (0.8 x ceiling if no knee is found); limiter: "
+                         "EXPERIMENTAL, a deeper soft region (0.5 x ceiling) below limiter ceilings (raises the "
+                         "measured accuracy on synthetic limiter tests but can add audible distortion); "
                          "legacy: the previous plateau-or-knee detection")
     ap.add_argument("--knee", default=None,
                     help="soft mode: force the knee level in dBFS (e.g. -9) or linear (e.g. 0.35)")

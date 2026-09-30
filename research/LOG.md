@@ -287,3 +287,16 @@ CPU (8 s excerpt) 20.4 -> 17.8 s (-13 %). User measured -22 % on an RTX 4070 SUP
 Example SDR unchanged: normal 25.23 / high 25.39 / best 25.47 dB.
 CLI: output is optional -> '<name> [<restoration> <preset>].wav' next to the input (restoration: 'auto
 <kinds>[+soft]' / 'auto none', or the mode, with a forced level: 'hard -12dB', 'soft knee -9dB').
+### Session 6 (2026-09-30): moderate limiter knee by default, packaging
+User listened to --mode soft on the limiter masters (Bangarang etc.) and liked it ("accurate enough") ->
+auto below limiter ceilings: knee from the first pass if found, else 0.8 x ceiling (= what --mode soft did
+there; auto and soft are bit-identical on all-limiter files). 'none' polarities that reach a limiter
+ceiling of the same file (max <= 1.001 x ceiling, >= MIN_EVENTS touches) join it (SPACELLEX: L+ was
+limiter at 37 touches/s, the others ~4/s -> now all four, symmetric restoration). Benchmark
+(mbench_s6.json, fast): al1_6 15.08 -> 15.52, osal1 7.60 -> 8.17, al1slow 4.54 = 4.54, oshard6 29.58 ->
+29.86 (ruder's misclassified limiter polarity 26.26 -> 28.17); hard6/tanh6/mp3/softhard6 bit-identical;
+no case below its input; 105-case mean 21.58 (s5 21.49, --mode limiter 0.5 knee 21.68).
+Flower Man (Deltarune ch5, guest mastered by Camellia): all four polarities peak at -0.21 dBFS (+-0.01 dB)
+= a limiter, but sample peaks touch it only 0.07-0.66 times/s (< 8/s) -> 'none', untouched by auto.
+Packaging: pyproject.toml (setuptools, console script `betterdeclipper`, version 0.2.0 from __init__),
+lazy `from betterdeclipper import declip` (torch loads on first use). Wheel = the 15 package modules only.

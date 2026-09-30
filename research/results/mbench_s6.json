@@ -1,0 +1,338 @@
+{
+ "ex__hard6": {
+  "in": 25.397840463382884,
+  "auto": 40.87243861195853,
+  "auto#flag": 0.017327250768693,
+  "auto#mode": "clip"
+ },
+ "ex__tanh6": {
+  "in": 23.323459575768798,
+  "auto": 33.914716264816754,
+  "auto#flag": 0.08534899394883194,
+  "auto#mode": "none, soft knee 0.75"
+ },
+ "ex__softhard6": {
+  "in": 24.915657760455993,
+  "auto": 33.87521749853042,
+  "auto#flag": 0.098611957074592,
+  "auto#mode": "clip, soft knee 0.73"
+ },
+ "ex__oshard6": {
+  "in": 25.402971171733242,
+  "auto": 39.655717226946045,
+  "auto#flag": 0.01822623958941642,
+  "auto#mode": "smeared"
+ },
+ "ex__mp3_128": {
+  "in": 20.575987517350768,
+  "auto": 23.1431143993224,
+  "auto#flag": 0.04716290012328392,
+  "auto#mode": "smeared, soft knee 0.85"
+ },
+ "ex__al1_6": {
+  "in": 21.08170677911085,
+  "auto": 21.891494610688657,
+  "auto#flag": 0.05292783600099632,
+  "auto#mode": "limiter, limiter knee 0.80"
+ },
+ "ex__osal1": {
+  "in": 9.349891841785327,
+  "auto": 11.451727436068804,
+  "auto#flag": 0.43719898526244405,
+  "auto#mode": "limiter, limiter knee 0.50"
+ },
+ "petal__hard6": {
+  "in": 21.893392796726665,
+  "auto": 33.018131417819326,
+  "auto#flag": 0.016352985638699923,
+  "auto#mode": "clip"
+ },
+ "petal__tanh6": {
+  "in": 20.727093702297708,
+  "auto": 28.317178531647954,
+  "auto#flag": 0.04874187452758881,
+  "auto#mode": "none, soft knee 0.78"
+ },
+ "petal__softhard6": {
+  "in": 21.685607830776448,
+  "auto": 29.047056568719043,
+  "auto#flag": 0.05655895691609977,
+  "auto#mode": "clip, soft knee 0.75"
+ },
+ "petal__oshard6": {
+  "in": 21.89466756571461,
+  "auto": 32.309438611124435,
+  "auto#flag": 0.016217309145880574,
+  "auto#mode": "smeared"
+ },
+ "petal__mp3_128": {
+  "in": 18.058536042241975,
+  "auto": 20.835281609148126,
+  "auto#flag": 0.046707860922146634,
+  "auto#mode": "smeared, soft knee 0.88"
+ },
+ "petal__al1_6": {
+  "in": 17.92763154537592,
+  "auto": 18.499180048600397,
+  "auto#flag": 0.028487150415721845,
+  "auto#mode": "limiter, limiter knee 0.83"
+ },
+ "petal__osal1": {
+  "in": 8.774730200104077,
+  "auto": 9.218075398225961,
+  "auto#flag": 0.09168140589569161,
+  "auto#mode": "limiter, limiter knee 0.83"
+ },
+ "ruder__hard6": {
+  "in": 19.233792247938677,
+  "auto": 28.097210032253916,
+  "auto#flag": 0.03222940287226002,
+  "auto#mode": "clip"
+ },
+ "ruder__tanh6": {
+  "in": 18.347874859269957,
+  "auto": 25.19619826602017,
+  "auto#flag": 0.08245880574452003,
+  "auto#mode": "none, soft knee 0.78"
+ },
+ "ruder__softhard6": {
+  "in": 19.09540493525236,
+  "auto": 26.077928616630302,
+  "auto#flag": 0.08416439909297052,
+  "auto#mode": "clip, soft knee 0.78"
+ },
+ "ruder__oshard6": {
+  "in": 19.238049413961225,
+  "auto": 28.172175684962397,
+  "auto#flag": 0.03967233560090703,
+  "auto#mode": "limiter+smeared, limiter knee 0.80"
+ },
+ "ruder__mp3_128": {
+  "in": 16.386104717648642,
+  "auto": 19.529589028231843,
+  "auto#flag": 0.08858956916099774,
+  "auto#mode": "smeared, soft knee 0.85"
+ },
+ "ruder__al1_6": {
+  "in": 9.504030826292931,
+  "auto": 9.537073586266686,
+  "auto#flag": 0.024508692365835222,
+  "auto#mode": "limiter+smeared, limiter knee 0.80"
+ },
+ "ruder__osal1": {
+  "in": 6.300831119385131,
+  "auto": 6.588142261312347,
+  "auto#flag": 0.09334467120181406,
+  "auto#mode": "limiter+smeared, limiter knee 0.83, soft knee 0.83"
+ },
+ "thrash__hard6": {
+  "in": 20.512045961628708,
+  "auto": 33.63893106723951,
+  "auto#flag": 0.0249119425547997,
+  "auto#mode": "clip"
+ },
+ "thrash__tanh6": {
+  "in": 19.44530459738604,
+  "auto": 30.27102945922173,
+  "auto#flag": 0.07757482993197279,
+  "auto#mode": "none, soft knee 0.75"
+ },
+ "thrash__softhard6": {
+  "in": 20.33058824442794,
+  "auto": 30.931422328039364,
+  "auto#flag": 0.07847089947089947,
+  "auto#mode": "clip, soft knee 0.75"
+ },
+ "thrash__oshard6": {
+  "in": 20.514856868074745,
+  "auto": 34.39104723336594,
+  "auto#flag": 0.02505139833711262,
+  "auto#mode": "smeared"
+ },
+ "thrash__mp3_128": {
+  "in": 18.077792723710907,
+  "auto": 23.140480673477985,
+  "auto#flag": 0.05452645502645503,
+  "auto#mode": "smeared, soft knee 0.88"
+ },
+ "thrash__al1_6": {
+  "in": 16.464510739706423,
+  "auto": 17.0147663914718,
+  "auto#flag": 0.045248677248677246,
+  "auto#mode": "limiter, limiter knee 0.80"
+ },
+ "thrash__osal1": {
+  "in": 7.857302092022579,
+  "auto": 8.257882231971287,
+  "auto#flag": 0.10944331065759637,
+  "auto#mode": "limiter, limiter knee 0.80"
+ },
+ "violet__hard6": {
+  "in": 19.818882087907788,
+  "auto": 27.170004714140422,
+  "auto#flag": 0.025100907029478457,
+  "auto#mode": "clip"
+ },
+ "violet__tanh6": {
+  "in": 18.88675693423384,
+  "auto": 24.439952077542927,
+  "auto#flag": 0.06435714285714286,
+  "auto#mode": "none, soft knee 0.78"
+ },
+ "violet__softhard6": {
+  "in": 19.671092883637943,
+  "auto": 25.035247010706975,
+  "auto#flag": 0.07397467876039304,
+  "auto#mode": "clip, soft knee 0.75"
+ },
+ "violet__oshard6": {
+  "in": 19.807128692326575,
+  "auto": 26.893696859548708,
+  "auto#flag": 0.02798185941043084,
+  "auto#mode": "smeared"
+ },
+ "violet__mp3_128": {
+  "in": 15.812984540282976,
+  "auto": 17.8472239042739,
+  "auto#flag": 0.10356462585034014,
+  "auto#mode": "smeared, soft knee 0.88"
+ },
+ "violet__al1_6": {
+  "in": 15.358548850143654,
+  "auto": 15.764245372291263,
+  "auto#flag": 0.03933673469387755,
+  "auto#mode": "limiter, limiter knee 0.80"
+ },
+ "violet__osal1": {
+  "in": 8.272499022596744,
+  "auto": 8.719199709340282,
+  "auto#flag": 0.0916912320483749,
+  "auto#mode": "limiter, limiter knee 0.83"
+ },
+ "bigshot__hard6": {
+  "in": 15.336071161271505,
+  "auto": 21.99201104808589,
+  "auto#flag": 0.11102256944444444,
+  "auto#mode": "clip"
+ },
+ "bigshot__tanh6": {
+  "in": 14.710741771641086,
+  "auto": 20.003031634925446,
+  "auto#flag": 0.17240520833333334,
+  "auto#mode": "none, soft knee 0.83"
+ },
+ "bigshot__softhard6": {
+  "in": 15.26224066065681,
+  "auto": 21.231711821836726,
+  "auto#flag": 0.1646732638888889,
+  "auto#mode": "clip, soft knee 0.85"
+ },
+ "bigshot__oshard6": {
+  "in": 15.336258162974696,
+  "auto": 21.898643231607153,
+  "auto#flag": 0.11555069444444445,
+  "auto#mode": "smeared"
+ },
+ "bigshot__mp3_128": {
+  "in": 13.563656462593558,
+  "auto": 17.597152328612978,
+  "auto#flag": 0.24977395833333332,
+  "auto#mode": "smeared, soft knee 0.85"
+ },
+ "bigshot__al1_6": {
+  "in": 11.213503855224285,
+  "auto": 11.508932347000487,
+  "auto#flag": 0.09643402777777778,
+  "auto#mode": "limiter, limiter knee 0.80"
+ },
+ "bigshot__osal1": {
+  "in": 5.565929242117357,
+  "auto": 5.8531199990049,
+  "auto#flag": 0.08411944444444444,
+  "auto#mode": "limiter, limiter knee 0.90"
+ },
+ "knife__hard6": {
+  "in": 18.478955901717832,
+  "auto": 26.005645445530728,
+  "auto#flag": 0.05081284722222222,
+  "auto#mode": "clip"
+ },
+ "knife__tanh6": {
+  "in": 17.56969739744835,
+  "auto": 22.799675038309374,
+  "auto#flag": 0.10766805555555556,
+  "auto#mode": "none, soft knee 0.80"
+ },
+ "knife__softhard6": {
+  "in": 18.34081927088548,
+  "auto": 23.92463664524246,
+  "auto#flag": 0.11157361111111111,
+  "auto#mode": "clip, soft knee 0.80"
+ },
+ "knife__oshard6": {
+  "in": 18.488690179537777,
+  "auto": 25.677406879806224,
+  "auto#flag": 0.054971875,
+  "auto#mode": "smeared"
+ },
+ "knife__mp3_128": {
+  "in": 14.598819654703075,
+  "auto": 16.438647606817614,
+  "auto#flag": 0.13636770833333334,
+  "auto#mode": "smeared"
+ },
+ "knife__al1_6": {
+  "in": 14.000897003545415,
+  "auto": 14.394431404901159,
+  "auto#flag": 0.06962395833333333,
+  "auto#mode": "limiter, limiter knee 0.80"
+ },
+ "knife__osal1": {
+  "in": 6.807105691481453,
+  "auto": 7.100525280602255,
+  "auto#flag": 0.07898090277777778,
+  "auto#mode": "limiter, limiter knee 0.88"
+ },
+ "ex__al1slow": {
+  "in": 7.9489206270152355,
+  "auto": 7.9489206270152355,
+  "auto#flag": 0.0,
+  "auto#mode": "none"
+ },
+ "petal__al1slow": {
+  "in": 5.824407450528923,
+  "auto": 5.826752867278352,
+  "auto#flag": 0.007085034013605442,
+  "auto#mode": "limiter, limiter knee 0.80"
+ },
+ "ruder__al1slow": {
+  "in": 3.875190929482634,
+  "auto": 3.8794440857516586,
+  "auto#flag": 0.014118291761148904,
+  "auto#mode": "limiter, limiter knee 0.80"
+ },
+ "thrash__al1slow": {
+  "in": 5.0663198085727945,
+  "auto": 5.069551577097373,
+  "auto#flag": 0.010270219198790627,
+  "auto#mode": "limiter, limiter knee 0.80"
+ },
+ "violet__al1slow": {
+  "in": 4.328525719954691,
+  "auto": 4.332149762917662,
+  "auto#flag": 0.013174225245653818,
+  "auto#mode": "limiter, limiter knee 0.80"
+ },
+ "bigshot__al1slow": {
+  "in": 2.0820499026477095,
+  "auto": 2.084074479532009,
+  "auto#flag": 0.012892361111111111,
+  "auto#mode": "limiter, limiter knee 0.80"
+ },
+ "knife__al1slow": {
+  "in": 2.667272894331108,
+  "auto": 2.669382209467038,
+  "auto#flag": 0.013686458333333333,
+  "auto#mode": "limiter, limiter knee 0.80"
+ }
+}

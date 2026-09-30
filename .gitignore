@@ -14,3 +14,7 @@ __pycache__/
 research/results/venv_install.log
 ex_master/
 ex_strange/
+# packaging
+build/
+dist/
+*.egg-info/

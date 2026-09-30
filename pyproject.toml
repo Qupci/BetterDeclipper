@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "betterdeclipper"
+dynamic = ["version"]
+description = "High-accuracy offline audio declipper: automatic analysis of clipped, limited and lossy masters, NMF plug-and-play restoration"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "Qupci" }]
+keywords = ["audio", "declipping", "declipper", "restoration", "clipping", "mastering"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+    "Environment :: GPU :: NVIDIA CUDA",
+]
+# torch: install the CUDA build first for GPU processing (see README); pip otherwise pulls the CPU build
+dependencies = ["numpy", "scipy", "soundfile", "torch"]
+
+[project.urls]
+Homepage = "https://github.com/Qupci/BetterDeclipper"
+
+[project.scripts]
+betterdeclipper = "betterdeclipper.cli:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "betterdeclipper.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["betterdeclipper*"]
