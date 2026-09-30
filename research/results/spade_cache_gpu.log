@@ -1,0 +1,3 @@
+sample_-12dB_clipped.wav             21.7s cuda clip                       flagged 26.79%  SPADE ref   3.11s  new   2.71s  (12.8% faster)  bit-identical True (max diff 0.00e+00)
+17_Rome_Search.wav                  120.0s cuda clip, soft knee 0.88       flagged  9.30%  SPADE ref   9.48s  new   8.25s  (13.0% faster)  bit-identical True (max diff 0.00e+00)
+metallica-cd.wav                    476.3s cuda smeared, soft knee 0.68    flagged 27.36%  SPADE ref 122.53s  new 106.12s  (13.4% faster)  bit-identical True (max diff 0.00e+00)

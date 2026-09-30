@@ -1,5 +1,6 @@
 """Command-line interface: python -m betterdeclipper input.wav output.wav [options]"""
 import argparse
+import os
 import sys
 import numpy as np
 import soundfile as sf
@@ -90,10 +91,33 @@ def analysis_lines(info, C):
     return out
 
 
+def restoration_label(mode, info, forced=None):
+    """Short name of the restoration for default output names: 'auto <what the analysis found>' (clip,
+    smeared, limiter, + soft when a soft shoulder was restored; none if nothing was), or the chosen mode,
+    followed by a forced level if one was given (e.g. 'hard -12dB', 'soft knee -9dB')."""
+    if forced:
+        return f"{mode} {forced}"
+    an = info.get("analysis")
+    if mode != "auto" or an is None:
+        return mode
+    parts = [k for k in ("clip", "smeared", "limiter") if k in an["kinds"]]
+    if an.get("knee_found"):
+        parts.append("soft")
+    return "auto " + ("+".join(parts) if parts and info["clipped_frac"] > 0 else "none")
+
+
+def default_output(path, label, preset):
+    """'<folder>/<name> [<label> <preset>].wav' next to the input"""
+    stem = os.path.splitext(os.path.basename(path))[0]
+    return os.path.join(os.path.dirname(os.path.abspath(path)), f"{stem} [{label} {preset}].wav")
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="betterdeclipper", description="High-accuracy offline audio declipper.")
     ap.add_argument("input")
-    ap.add_argument("output")
+    ap.add_argument("output", nargs="?", default=None,
+                    help="output file (WAV); default: '<input name> [<restoration> <preset>].wav' in the input's "
+                         "folder, e.g. 'song [auto clip+soft normal].wav' or 'song [hard best].wav'")
     ap.add_argument("--preset", choices=list(PRESETS), default="normal",
                     help="speed/quality trade-off (default: normal)")
     ap.add_argument("--clip-level", default=None,
@@ -128,14 +152,16 @@ def main(argv=None):
     levels = None
     knees = None
     mode = args.mode
+    forced = None
+    tag = lambda v: f"{round(20 * np.log10(v), 1):g}dB"
     if args.clip_level is not None:
         lv = _parse_level(args.clip_level)
         levels = [(lv, -lv)] * C
-        mode = "hard"
+        mode, forced = "hard", tag(lv)
     if args.knee is not None:
         kv = _parse_level(args.knee)
         knees = [(kv, -kv)] * C
-        mode = "soft"
+        mode, forced = "soft", "knee " + tag(kv)
     print(f"input: {args.input}  {sr} Hz, {C} ch, {len(y)/sr:.1f} s")
 
     def progress(i, n, el):
@@ -163,6 +189,7 @@ def main(argv=None):
     if subtype != "FLOAT" and peak > 1.0:
         print(f"warning: output peak {20*np.log10(peak):+.2f} dBFS exceeds 0 dBFS and will clip in {args.format}; "
               f"use --normalize or --format float", file=sys.stderr)
-    sf.write(args.output, x.astype(np.float32 if subtype == "FLOAT" else np.float64), sr, subtype=subtype)
-    print(f"output: {args.output}  peak {20*np.log10(max(peak, 1e-12)):+.2f} dBFS ({args.format})")
+    out = args.output or default_output(args.input, restoration_label(mode, info, forced), args.preset)
+    sf.write(out, x.astype(np.float32 if subtype == "FLOAT" else np.float64), sr, subtype=subtype)
+    print(f"output: {out}  peak {20*np.log10(max(peak, 1e-12)):+.2f} dBFS ({args.format})")
     return 0

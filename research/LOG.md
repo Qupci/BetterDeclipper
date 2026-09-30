@@ -277,3 +277,13 @@ User files with the session-5 auto (normal preset, research/outputs/master_demo_
 All Is Fair 0.12 % flagged (max +3.3 dB), Bangarang / Goin' In x2 0.00 % (max +1.2..1.7 dB), Purple
 Lamborghini 0.01 % (a dozen 70-87 sample flat plateaus per channel at 0:52 / 2:23 -> up to +6.2 dB),
 Petal AL-1 0.02 % (+0.8 dB max), SPACELLEX 0.01 % (+0.2 dB max). RMS change <= 0.003 dB on all of them.
+### A-SPADE transform reuse (user suggestion, research/speed/spade_cache.py)
+The A(xn) computed for the residual at the end of an A-SPADE iteration is A(xa) of the next one (xa = xn):
+carried over (re-indexed with the working set on compaction), residual computed in zb's storage
+(zb.neg_().add_(A(xn)) == A(xn) - zb exactly) -> 2 transforms per iteration instead of 3, same peak memory
+(661 MiB on the example). Bit-identical output on GPU and CPU. SPADE time (GTX 1660 Ti, min of 2 runs):
+example 21.7 s 3.11 -> 2.71 s, Rome 120 s 9.48 -> 8.25 s, metallica 476 s 122.5 -> 106.1 s (-13 %);
+CPU (8 s excerpt) 20.4 -> 17.8 s (-13 %). User measured -22 % on an RTX 4070 SUPER (185 s track).
+Example SDR unchanged: normal 25.23 / high 25.39 / best 25.47 dB.
+CLI: output is optional -> '<name> [<restoration> <preset>].wav' next to the input (restoration: 'auto
+<kinds>[+soft]' / 'auto none', or the mode, with a forced level: 'hard -12dB', 'soft knee -9dB').

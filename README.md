@@ -60,11 +60,17 @@ On this machine, `declip.bat in.wav out.wav` uses the GPU environment in `.venv`
 
 ```
 python -m betterdeclipper input.wav output.wav                 # automatic analysis, "normal" preset
+python -m betterdeclipper input.wav                            # -> "input [auto clip+soft normal].wav"
 python -m betterdeclipper input.wav output.wav --preset best   # slowest, most accurate
 python -m betterdeclipper input.flac output.wav --clip-level -12   # force the clip level (dBFS)
 python -m betterdeclipper in.wav out.wav --format pcm24 --normalize -0.1
 ```
 
+- Without an output name, the result is written next to the input as
+  `<name> [<restoration> <preset>].wav`. The restoration is what `auto` found (`auto clip`,
+  `auto smeared+soft`, `auto limiter`, `auto none`, ...; `+soft` when a soft shoulder was restored), or
+  the chosen mode (`hard`, `soft`, `limiter`, `legacy`), with the level when one is forced
+  (`hard -12dB`, `soft knee -9dB`).
 - Output is 32-bit float by default: restored peaks can exceed the clip level (and even 0 dBFS
   when the input was clipped at full scale). For PCM output, use `--normalize` or `--gain`.
 - Any sample rate works (window lengths are defined in milliseconds).
@@ -147,6 +153,10 @@ GPU memory use is under 2 GB. What makes it fast:
   disable graphs.
 - **SPADE runs over the whole file** in large frame batches sized to the free GPU memory, instead of
   once per 20 s chunk. The working set shrinks in steps of 64 frames, so cuFFT plans are reused.
+- **SPADE reuses a transform.** The transform computed for the residual at the end of an A-SPADE
+  iteration is the one the next iteration starts from, so it is carried over (2 FFTs per iteration
+  instead of 3). Bit-identical output; SPADE ~13 % faster on a GTX 1660 Ti and on the CPU, ~22 % on
+  an RTX 4070 SUPER (suggested by a user).
 - **Device-specific selection.** SPADE's k-largest selection uses `topk` on GPUs and `kthvalue` on
   CPUs (same result; each is faster on its device).
 

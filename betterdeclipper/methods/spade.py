@@ -43,20 +43,25 @@ def _aspade_batch(Yb, LBb, UBb, A, As, s, r, eps, max_iter, M, rank_w, pad_multi
     All rows share the same k schedule. Converged rows are written out when they converge and are
     then ignored. The working set is compacted only when it can shrink by `pad_multiple` rows
     (padded with duplicate rows whose output is ignored), so batch shapes, and with them the
-    cuFFT plans, change rarely. Per-row arithmetic is identical to an unbatched run."""
+    cuFFT plans, change rarely. Per-row arithmetic is identical to an unbatched run.
+    A(xn), needed for the residual, is also A(xa) of the next iteration (xa = xn): it is carried over
+    instead of recomputed (2 transforms per iteration instead of 3, same results)."""
     n = Yb.shape[0]
     dev = Yb.device
     x = Yb.clone()
-    xa, ua, LBa, UBa = x, torch.zeros_like(A(Yb)), LBb, UBb
+    xa, LBa, UBa = x, LBb, UBb
+    Axa = A(xa)                                   # A(xa) of the current working set
+    ua = torch.zeros_like(Axa)
     rows = torch.arange(n, device=dev)            # frame index of each working-set row
     live = torch.ones(n, dtype=torch.bool, device=dev)
     kk = s
     n_live = n
     it = 0
     for it in range(max_iter):
-        zb = _hard_single_k(A(xa).add_(ua), min(kk, M), rank_w)
+        zb = _hard_single_k(Axa.add_(ua), min(kk, M), rank_w)   # Axa is consumed here (in place)
         xn = torch.clamp(As(zb - ua), min=LBa, max=UBa)
-        res = A(xn).sub_(zb)
+        Axa = A(xn)
+        res = zb.neg_().add_(Axa)                 # = A(xn) - zb exactly, in zb's storage (zb is not needed)
         nr = torch.sqrt((res.real ** 2 + res.imag ** 2).sum(-1))
         ua.add_(res)
         xa = xn
@@ -74,7 +79,7 @@ def _aspade_batch(Yb, LBb, UBb, A, As, s, r, eps, max_iter, M, rank_w, pad_multi
             if m_new < xa.shape[0]:
                 kept = torch.nonzero(live).flatten()
                 sel = torch.cat([kept, kept[:1].expand(m_new - n_live)]) if m_new > n_live else kept
-                xa, ua, LBa, UBa, rows = xa[sel], ua[sel], LBa[sel], UBa[sel], rows[sel]
+                xa, ua, Axa, LBa, UBa, rows = xa[sel], ua[sel], Axa[sel], LBa[sel], UBa[sel], rows[sel]
                 live = torch.zeros(m_new, dtype=torch.bool, device=dev)
                 live[:n_live] = True
     if n_live:
