@@ -308,4 +308,5 @@ Saved from --mode hard the search still runs (full_analysis), so one file serves
 Checks: reloaded runs bit-identical to fresh ones in all four modes (tarzan, 75 s: 13.7 -> 6.3 s with the
 fast preset), via file and in memory; 15 benchmark cases bit-identical to mbench_s5/s6 after the
 refactor; another input (album case) is reported as reused, channel mismatch is an error.
-License: AGPL-3.0-only (LICENSE = gnu.org agpl-3.0.txt), version 0.3.0.
+License: GPL-3.0-only (LICENSE = gnu.org gpl-3.0.txt; briefly AGPL-3.0-only on dev, changed so that network
+services such as MVSep may use it without a source obligation), version 0.3.0.

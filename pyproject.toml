@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "High-accuracy offline audio declipper: automatic analysis of clipped, limited and lossy masters, NMF plug-and-play restoration"
 readme = "README.md"
 requires-python = ">=3.9"
-license = "AGPL-3.0-only"
+license = "GPL-3.0-only"
 license-files = ["LICENSE"]
 authors = [{ name = "Qupci" }]
 keywords = ["audio", "declipping", "declipper", "restoration", "clipping", "mastering"]
