@@ -77,6 +77,11 @@ from betterdeclipper.cli import analysis_lines, restoration_label
 y, sr = sf.read("in.wav", always_2d=True)
 x, info = declip(y, sr, preset="normal", mode="auto", progress=lambda step, n, seconds: None)
 print("\n".join(analysis_lines(info, y.shape[1])))   # what the analysis found (auto/hard/soft/limiter)
+
+# reuse the analysis for other presets / modes without analyzing again (identical result, faster)
+data = info["analysis"]["data"]
+x2, info2 = declip(y, sr, preset="best", mode="soft", analysis=data)
+# keep it in a file: betterdeclipper.auto.save_analysis(path, data, file="in.wav") / load_analysis(path)
 ```
 
 ## Usage
@@ -88,6 +93,8 @@ python -m betterdeclipper input.wav                            # -> "input [auto
 python -m betterdeclipper input.wav output.wav --preset best   # slowest, most accurate
 python -m betterdeclipper input.flac output.wav --clip-level -12   # force the clip level (dBFS)
 python -m betterdeclipper in.wav out.wav --format pcm24 --normalize -0.1
+python -m betterdeclipper in.wav --save-analysis                # also writes "in.analysis.json"
+python -m betterdeclipper in.wav --preset best --load-analysis in.analysis.json   # skips the analysis
 ```
 
 - Without an output name, the result is written next to the input as
@@ -95,6 +102,13 @@ python -m betterdeclipper in.wav out.wav --format pcm24 --normalize -0.1
   `auto smeared+soft`, `auto limiter`, `auto none`, ...; `+soft` when a soft shoulder was restored), or
   the chosen mode (`hard`, `soft`, `limiter`, `legacy`), with the level when one is forced
   (`hard -12dB`, `soft knee -9dB`).
+- `--save-analysis [FILE]` writes the analysis (ceilings and soft-shoulder knee; default
+  `<input name>.analysis.json` next to the output) and `--load-analysis FILE` uses it instead of
+  analyzing again. One analysis serves every preset and the modes `auto`, `hard`, `soft` and `limiter`
+  (results are identical to a fresh run), so trying settings only costs the restoration. It can also be
+  applied to other tracks that were clipped the same way, e.g. an album with one mastering chain: check
+  by ear that it fits; the printout says that the levels come from another file. The file is JSON, and
+  its values (e.g. the knee) may be edited.
 - Output is 32-bit float by default: restored peaks can exceed the clip level (and even 0 dBFS
   when the input was clipped at full scale). For PCM output, use `--normalize` or `--gain`.
 - Any sample rate works (window lengths are defined in milliseconds).
@@ -221,3 +235,9 @@ GPU memory use is under 2 GB. What makes it fast:
    memory stays bounded. Chunks without clipping are copied through.
 
 The research history, all experiments and their numbers are in `research/LOG.md`.
+
+## License
+
+BetterDeclipper is free software, licensed under the GNU Affero General Public License v3.0
+(`AGPL-3.0-only`, see [LICENSE](LICENSE)). The example audio, the ProAudioDeclipper files and the
+masters used for testing are not part of the repository.

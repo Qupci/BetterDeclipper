@@ -161,7 +161,7 @@ def snap_levels(y, levels, lsb, tol_db=0.3):
 
 def declip(y, sr, preset="normal", levels=None, chunk_s=20.0, ctx_s=1.5, fade_s=0.05,
            threads=None, verbose=True, progress=None, models=None, mode="auto", knees=None, max_gain_db=None,
-           device="auto", constraints=None, dips=None):
+           device="auto", constraints=None, dips=None, analysis=None, full_analysis=False):
     """Declip y (T, C) float array. Returns (x_hat (T, C), info dict).
 
     mode: 'auto' (analyze the ceilings: clip plateau, limiter, smeared (lossy/resampled) ceiling, soft
@@ -169,6 +169,10 @@ def declip(y, sr, preset="normal", levels=None, chunk_s=20.0, ctx_s=1.5, fade_s=
     add a soft region below the ceiling; knee from the first pass or 0.8 x ceiling), 'limiter' (experimental:
     auto + soft region below limiter ceilings), 'legacy' (the previous plateau-or-knee logic). Explicit
     `levels` (clip levels) or `knees` override the analysis.
+    analysis: reuse a saved analysis (info['analysis']['data'] of an earlier run, or auto.load_analysis())
+    instead of analyzing y: same input with another preset/mode, or another track clipped the same way.
+    full_analysis: also run the soft-shoulder search in mode 'hard', so that info['analysis']['data'] can
+    be reused with every mode.
     device: 'auto' (CUDA GPU if available, else CPU), 'cpu', 'cuda' or 'cuda:N'."""
     t_start = time.time()
     if threads:
@@ -187,13 +191,17 @@ def declip(y, sr, preset="normal", levels=None, chunk_s=20.0, ctx_s=1.5, fade_s=
         m_hi, m_lo, th_hi, th_lo = constraints[:4]
         gcap = constraints[4] if len(constraints) > 4 else None
         used_mode = "custom"
+    elif analysis is not None and (mode not in ("auto", "hard", "soft", "limiter") or levels is not None
+                                   or knees is not None):
+        raise ValueError("a saved analysis applies to modes auto/hard/soft/limiter without forced levels/knees")
     elif mode in ("auto", "hard", "soft", "limiter") and levels is None and knees is None:
         # ceiling analysis (clip plateau / limiter / smeared ceiling) + soft-shoulder knee (first pass)
         def run_fast(yy, cons):  # analysis pass: 80 NMF iterations give the same knees as 150
             xx, _ = declip(yy, sr, models=[("nmf", 93, dict(n_iter=80))], constraints=cons, device=device,
                            verbose=False, chunk_s=chunk_s, ctx_s=ctx_s, fade_s=fade_s)
             return xx
-        m_hi, m_lo, th_hi, th_lo, rep = auto_constraints(y, lsb, run_fast, mode=mode, sr=sr)
+        m_hi, m_lo, th_hi, th_lo, rep = auto_constraints(y, lsb, run_fast, mode=mode, sr=sr, analysis=analysis,
+                                                         search=full_analysis)
         gcap = rep.pop("gcap", None)
         levels = rep["knees"]
         used_mode = rep["mode"]

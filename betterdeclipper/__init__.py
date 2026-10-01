@@ -7,7 +7,7 @@ Python API (torch is imported on first use):
     x, info = declip(y, sr, preset="normal", mode="auto", progress=lambda step, n, seconds: None)
 info["analysis"] holds the automatic analysis; betterdeclipper.cli.analysis_lines(info, channels) formats it.
 """
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 __all__ = ["declip", "PRESETS", "__version__"]
 
 

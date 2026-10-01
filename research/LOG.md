@@ -300,3 +300,12 @@ Flower Man (Deltarune ch5, guest mastered by Camellia): all four polarities peak
 = a limiter, but sample peaks touch it only 0.07-0.66 times/s (< 8/s) -> 'none', untouched by auto.
 Packaging: pyproject.toml (setuptools, console script `betterdeclipper`, version 0.2.0 from __init__),
 lazy `from betterdeclipper import declip` (torch loads on first use). Wheel = the 15 package modules only.
+### Reusable analysis files, license (2026-10-01)
+auto.py split into analyze() (ceilings + soft-shoulder search = the slow first pass; plain data with a
+source fingerprint) and auto_constraints(..., analysis=) which applies any mode to it. CLI
+--save-analysis / --load-analysis (JSON, editable), API declip(..., analysis=info['analysis']['data']).
+Saved from --mode hard the search still runs (full_analysis), so one file serves auto/hard/soft/limiter.
+Checks: reloaded runs bit-identical to fresh ones in all four modes (tarzan, 75 s: 13.7 -> 6.3 s with the
+fast preset), via file and in memory; 15 benchmark cases bit-identical to mbench_s5/s6 after the
+refactor; another input (album case) is reported as reused, channel mismatch is an error.
+License: AGPL-3.0-only (LICENSE = gnu.org agpl-3.0.txt), version 0.3.0.

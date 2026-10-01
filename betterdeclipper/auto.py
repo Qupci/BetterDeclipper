@@ -270,9 +270,91 @@ def _loud_windows(y, refs, sr, win_s=10.0, total_s=60.0, use=None):
 MODES = ("auto", "hard", "soft", "limiter")
 
 
-def auto_constraints(y, lsb, run_fast, mode="auto", sr=44100):
-    """Analyze the ceilings and build the constraint set. run_fast(y, constraints) -> x runs a quick
-    restoration (used for the soft-shoulder knee). Returns (m_hi, m_lo, th_hi, th_lo, report dict).
+def _acc_min(refs):
+    """lift-acceleration threshold: lower when a ceiling was found (without one, unclipped music can bend
+    the curve a little, so the evidence must be stronger)"""
+    has_ceiling = any(r["kind"] != "none" and r["theta"] is not None for row in refs for r in row)
+    return ACC_MIN_CEIL if has_ceiling else ACC_MIN_FREE
+
+
+def search_shoulder(y, lsb, refs, run_fast, sr=44100):
+    """Soft-shoulder search with a first restoration pass (the slow part of the analysis).
+    Returns dict(knee (fraction of the ceiling, or None), acc, acc_min, curve (lift per RAISE_LV level))."""
+    acc_min = _acc_min(refs)
+    if not any(r["theta"] is not None for row in refs for r in row):
+        return dict(knee=None, acc=None, acc_min=acc_min, curve=None)
+    k0 = [[RAISE_K0 * r["theta"] if r["theta"] else None for r in row] for row in refs]
+    ys, xs = [], []
+    for a, b in _loud_windows(y, refs, sr):   # long files: first pass on the loudest 60 s only
+        yw = y[a:b]
+        ys.append(yw)
+        xs.append(run_fast(yw, ceiling_constraints(yw, refs, k0, lsb)))
+    cur = raise_curve(np.concatenate(ys), np.concatenate(xs), refs)
+    return dict(knee=knee_from_raise(cur, acc_min=acc_min), acc=lift_acceleration(cur), acc_min=acc_min,
+                curve=[None if not np.isfinite(v) else float(v) for v in cur])
+
+
+def fingerprint(y):
+    """short hash of the audio, to tell whether a saved analysis was made from this very input"""
+    import hashlib
+    return hashlib.sha1(np.ascontiguousarray(y, dtype=np.float32).tobytes()).hexdigest()[:16]
+
+
+def analyze(y, lsb, run_fast, sr=44100, search=True):
+    """The reusable analysis of one input: ceiling kind and level per channel and polarity, and (search)
+    the soft-shoulder knee. Plain data (see save_analysis); auto_constraints turns it into the constraints
+    of any mode, so one analysis serves every preset and mode, or other tracks clipped the same way."""
+    refs = analyze_ceilings(y, lsb, sr)
+    return dict(refs=refs, shoulder=search_shoulder(y, lsb, refs, run_fast, sr) if search else None,
+                source=dict(sr=int(sr), channels=int(y.shape[1]), samples=int(y.shape[0]), fingerprint=fingerprint(y)))
+
+
+ANALYSIS_FORMAT = "betterdeclipper-analysis"
+ANALYSIS_VERSION = 1
+_REF_KEYS = ("kind", "theta", "sigma", "peak", "flat", "long", "bump", "shared")
+
+
+def save_analysis(path, analysis, **source):
+    """Write an analysis (analyze(), or info['analysis']['data'] of declip) as JSON. Extra keyword
+    arguments (e.g. file=...) are stored with the source description."""
+    import json
+    from . import __version__
+
+    def num(v):
+        return v if v is None or isinstance(v, (str, bool)) else (bool(v) if isinstance(v, np.bool_) else float(v))
+    ceilings = [[{k: num(r[k]) for k in _REF_KEYS if k in r} for r in row] for row in analysis["refs"]]
+    sh = analysis.get("shoulder")
+    doc = {"format": ANALYSIS_FORMAT, "version": ANALYSIS_VERSION, "software": f"betterdeclipper {__version__}",
+           "about": "ceilings: per channel [positive, negative] side; kind clip / smeared / limiter / none; theta = "
+                    "ceiling level (linear, 1.0 = 0 dBFS; for 'none' the robust peak), sigma = its blur. "
+                    "shoulder.knee: soft-shoulder knee as a fraction of the ceiling (null: none found; then auto "
+                    "uses 0.8 below limiter ceilings). Values may be edited; the modes are applied when loading.",
+           "source": {**(analysis.get("source") or {}), **source},
+           "ceilings": ceilings,   # per channel: [positive, negative]; levels are linear (1.0 = 0 dBFS)
+           "shoulder": None if sh is None else {k: (v if k == "curve" else num(v)) for k, v in sh.items()}}
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(doc, f, indent=1)
+
+
+def load_analysis(path):
+    """Read a file written by save_analysis -> analysis dict for declip(..., analysis=...)."""
+    import json
+    with open(path, encoding="utf-8") as f:
+        doc = json.load(f)
+    if doc.get("format") != ANALYSIS_FORMAT:
+        raise ValueError(f"{path} is not a BetterDeclipper analysis file")
+    if doc.get("version", 0) > ANALYSIS_VERSION:
+        raise ValueError(f"{path} was written by a newer BetterDeclipper ({doc.get('software')})")
+    refs = [[dict(dict(theta=None, sigma=0.0, peak=None, kind="none", flat=0.0, bump=0.0), **r) for r in row]
+            for row in doc["ceilings"]]
+    return dict(refs=refs, shoulder=doc.get("shoulder"), source=doc.get("source"))
+
+
+def auto_constraints(y, lsb, run_fast, mode="auto", sr=44100, analysis=None, search=False):
+    """Analyze the ceilings (or use a saved `analysis`) and build the constraint set of `mode`.
+    run_fast(y, constraints) -> x runs a quick restoration (soft-shoulder search); search=True runs the
+    search even in mode 'hard', so the analysis in the report is complete for reuse with any mode.
+    Returns (m_hi, m_lo, th_hi, th_lo, report dict); report['data'] is the reusable analysis.
 
     mode 'auto':    clip plateaus and smeared ceilings are restored, plus the soft shoulder below them when
                     the first pass finds one (also without any ceiling, on stronger evidence). Below limiter
@@ -284,24 +366,30 @@ def auto_constraints(y, lsb, run_fast, mode="auto", sr=44100):
                     (raises SDR on synthetic limiter tests but reshapes cleanly limited peaks)."""
     if mode not in MODES:
         raise ValueError(f"mode must be one of {MODES}")
-    refs = analyze_ceilings(y, lsb, sr)
+    reused_from = None
+    if analysis is None:
+        analysis = analyze(y, lsb, run_fast, sr, search=search or mode != "hard")
+    elif len(analysis["refs"]) != y.shape[1]:
+        raise ValueError(f"the analysis is for {len(analysis['refs'])} channel(s), the input has {y.shape[1]}")
+    else:
+        src = analysis.get("source") or {}
+        if src.get("fingerprint") != fingerprint(y):
+            reused_from = src            # made from another input (e.g. another track of the same album)
+    if analysis.get("shoulder") is None and (search or mode != "hard"):
+        analysis["shoulder"] = search_shoulder(y, lsb, analysis["refs"], run_fast, sr)
+    refs = analysis["refs"]
+    sh = analysis.get("shoulder") or {}
     knees = base_knees(refs)
     kinds = sorted({r["kind"] for row in refs for r in row})
-    has_ceiling = any(r["kind"] != "none" and r["theta"] is not None for row in refs for r in row)
-    rep = dict(refs=refs, kinds=kinds, knee_rel=None, knee_found=False, acc=None, limiter_knee=None,
-               acc_min=ACC_MIN_CEIL if has_ceiling else ACC_MIN_FREE, request=mode)
-    if mode != "hard" and any(r["theta"] is not None for row in refs for r in row):
-        k0 = [[RAISE_K0 * r["theta"] if r["theta"] else None for r in row] for row in refs]
-        ys, xs = [], []
-        for a, b in _loud_windows(y, refs, sr):   # long files: first pass on the loudest 60 s only
-            yw = y[a:b]
-            ys.append(yw)
-            xs.append(run_fast(yw, ceiling_constraints(yw, refs, k0, lsb)))
-        cur = raise_curve(np.concatenate(ys), np.concatenate(xs), refs)
-        # without any ceiling the evidence must be stronger (unclipped music can bend the curve a little)
-        kr = knee_from_raise(cur, acc_min=rep["acc_min"])
-        rep.update(acc=lift_acceleration(cur), raise_curve=cur, knee_found=kr is not None, knee_rel=kr)
-    kr = rep["knee_rel"]
+    kr = sh.get("knee")
+    curve = sh.get("curve")
+    rep = dict(refs=refs, kinds=kinds, knee_rel=kr, knee_found=kr is not None, acc=sh.get("acc"),
+               acc_min=sh.get("acc_min", _acc_min(refs)), limiter_knee=None, request=mode, data=analysis,
+               raise_curve=None if curve is None else np.array([np.nan if v is None else v for v in curve], float),
+               reused_from=reused_from)
+    if mode == "hard":   # no soft region, even if the analysis has a knee
+        rep.update(knee_rel=None, knee_found=False, acc=None)
+        kr = None
     if mode == "soft" and kr is None:
         rep["knee_rel"] = kr = SOFT_DEFAULT_KNEE
     if "limiter" in kinds and mode != "hard":

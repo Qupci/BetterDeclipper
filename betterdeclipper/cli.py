@@ -7,7 +7,7 @@ import soundfile as sf
 
 from . import __version__
 from .engine import declip, PRESETS
-from .auto import ACC_MIN_FREE, ACC_HINT_FREE
+from .auto import ACC_MIN_FREE, ACC_HINT_FREE, load_analysis, save_analysis
 
 
 def _parse_level(s):
@@ -35,6 +35,11 @@ def analysis_lines(info, C):
     names = ["L", "R"] if C == 2 else [f"ch{c + 1}" for c in range(C)]
     kinds = [k for k in ("clip", "smeared", "limiter") if k in an["kinds"]]
     out = [f"analysis ({req}):"]
+    src = an.get("reused_from")
+    if src is not None:
+        what = f"'{src['file']}'" if src.get("file") else "another input"
+        out.append(f"  reused from {what} ({src.get('sr', '?')} Hz, {src.get('samples', 0) / max(src.get('sr', 1), 1):.1f} s):"
+                   f" levels and kinds below were measured there, not on this input")
     for c in range(C):
         for pi, pol in enumerate("+-"):
             r, k = refs[c][pi], knees[c][pi]
@@ -147,8 +152,20 @@ def main(argv=None):
     ap.add_argument("--device", default="auto",
                     help="auto (default: CUDA GPU if available, else CPU), cpu, cuda, or cuda:N")
     ap.add_argument("--threads", type=int, default=None, help="CPU threads (CPU processing only)")
+    ap.add_argument("--save-analysis", nargs="?", const="", default=None, metavar="FILE",
+                    help="also save the analysis as JSON (default: '<input name>.analysis.json' next to the "
+                         "output), to skip it next time with --load-analysis")
+    ap.add_argument("--load-analysis", default=None, metavar="FILE",
+                    help="use a saved analysis instead of analyzing the input: the same input with another "
+                         "preset or mode, or another track clipped the same way (e.g. the same album; "
+                         "check by ear that it fits)")
     ap.add_argument("--version", action="version", version=__version__)
     args = ap.parse_args(argv)
+    if (args.save_analysis is not None or args.load_analysis) and (
+            args.clip_level is not None or args.knee is not None or args.mode == "legacy"):
+        ap.error("--save-analysis / --load-analysis work with --mode auto, hard, soft or limiter, "
+                 "not with --clip-level, --knee or --mode legacy")
+    analysis = load_analysis(args.load_analysis) if args.load_analysis else None
 
     y, sr = sf.read(args.input, dtype="float64", always_2d=True)
     C = y.shape[1]
@@ -166,12 +183,21 @@ def main(argv=None):
         knees = [(kv, -kv)] * C
         mode, forced = "soft", "knee " + tag(kv)
     print(f"input: {args.input}  {sr} Hz, {C} ch, {len(y)/sr:.1f} s")
+    if analysis is not None:
+        print(f"analysis loaded from {args.load_analysis}", flush=True)
 
     def progress(i, n, el):
         print(f"  step {i}/{n}  elapsed {el:.0f}s", flush=True)
 
-    x, info = declip(y, sr, preset=args.preset, levels=levels, threads=args.threads, progress=progress,
-                     mode=mode, knees=knees, max_gain_db=args.max_gain, device=args.device)
+    try:
+        x, info = declip(y, sr, preset=args.preset, levels=levels, threads=args.threads, progress=progress,
+                         mode=mode, knees=knees, max_gain_db=args.max_gain, device=args.device, analysis=analysis,
+                         full_analysis=args.save_analysis is not None)
+    except ValueError as e:
+        if analysis is None:
+            raise
+        print(f"error: {e}", file=sys.stderr)
+        return 2
     lv_str = ", ".join(
         f"ch{c}: " + "/".join("-" if v is None else f"{20*np.log10(abs(v)):.2f} dBFS" for v in lvl)
         for c, lvl in enumerate(info["levels"] or []))
@@ -195,4 +221,11 @@ def main(argv=None):
     out = args.output or default_output(args.input, restoration_label(mode, info, forced), args.preset)
     sf.write(out, x.astype(np.float32 if subtype == "FLOAT" else np.float64), sr, subtype=subtype)
     print(f"output: {out}  peak {20*np.log10(max(peak, 1e-12)):+.2f} dBFS ({args.format})")
+    if args.save_analysis is not None:
+        an = info["analysis"]
+        path = args.save_analysis or os.path.join(os.path.dirname(os.path.abspath(out)),
+                                                  os.path.splitext(os.path.basename(args.input))[0] + ".analysis.json")
+        extra = {} if an.get("reused_from") is not None else {"file": os.path.basename(args.input)}
+        save_analysis(path, an["data"], **extra)
+        print(f"analysis saved: {path}")
     return 0
