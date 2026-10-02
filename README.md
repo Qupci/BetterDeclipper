@@ -238,6 +238,6 @@ The research history, all experiments and their numbers are in `research/LOG.md`
 
 ## License
 
-BetterDeclipper is free software, licensed under the GNU General Public License v3.0
-(`GPL-3.0-only`, see [LICENSE](LICENSE)). The example audio, the ProAudioDeclipper files and the
+BetterDeclipper is free software, licensed under the MIT License
+(`MIT`, see [LICENSE](LICENSE)). The example audio, the ProAudioDeclipper files and the
 masters used for testing are not part of the repository.
